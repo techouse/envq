@@ -9,9 +9,10 @@ FUZZ_TARGETS ?= parse_roundtrip edit_set_unset list_output diff
 FUZZ_SMOKE_SECONDS ?= 30
 
 .PHONY: help build build-release clean fmt fmt-check clippy test test-all test-doc \
-	coverage coverage-html private-reference msrv package-list package-check docs \
-	docs-missing docs-pages publish-dry-run pre-release ci fuzz-build fuzz-smoke \
-	fuzz-soak
+	coverage coverage-html private-reference legacy-reference msrv package-list \
+	package-check docs docs-missing docs-pages third-party-licenses \
+	third-party-licenses-check publish-dry-run pre-release ci fuzz-build \
+	fuzz-smoke fuzz-soak
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_.-]+:.*## / {printf "%-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
@@ -84,6 +85,13 @@ docs-pages: ## Build docs and add a root redirect page for GitHub Pages
 		'<a href="./envq/index.html">Open envq docs</a>' \
 		> target/doc/index.html
 
+third-party-licenses: ## Regenerate third-party dependency license notices
+	$(CARGO) about generate --locked about.hbs > THIRD-PARTY-LICENSES.md
+
+third-party-licenses-check: ## Check generated third-party license notices are current
+	$(CARGO) about generate --locked about.hbs > /tmp/envq-third-party-licenses.md
+	diff -u THIRD-PARTY-LICENSES.md /tmp/envq-third-party-licenses.md
+
 publish-dry-run: ## Verify crates.io publishability without uploading
 	$(CARGO) publish --dry-run --locked --allow-dirty
 
@@ -96,6 +104,7 @@ pre-release: ## Run the full maintainer gate before tagging a release
 	$(MAKE) docs
 	$(MAKE) docs-missing
 	$(MAKE) msrv
+	$(MAKE) third-party-licenses-check
 	$(MAKE) package-check
 	$(MAKE) publish-dry-run
 	$(MAKE) build-release

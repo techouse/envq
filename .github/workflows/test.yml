@@ -106,6 +106,10 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-about
+
       - uses: Swatinem/rust-cache@v2
 
       - name: Format check
@@ -126,6 +130,9 @@ jobs:
         env:
           RUSTFLAGS: -D missing_docs
         run: cargo check --lib --all-features --locked
+
+      - name: Third-party license notices
+        run: make third-party-licenses-check
 
   msrv:
     name: MSRV (${{ needs.msrv-meta.outputs.msrv }})
