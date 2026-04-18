@@ -12,6 +12,7 @@ description = "Byte-preserving .env query and editing tool"
 keywords = ["env", "dotenv", "cli", "configuration", "parser"]
 exclude = [
     ".github/",
+    ".gitattributes",
     ".gitignore",
     ".history/",
     ".vscode/**",
