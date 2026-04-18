@@ -46,6 +46,12 @@ Install from crates.io:
 cargo install envq
 ```
 
+Install with Homebrew:
+
+```bash
+brew install techouse/envq/envq
+```
+
 Or download a release artifact from
 [GitHub Releases](https://github.com/techouse/envq/releases). Linux releases
 include GNU/glibc and musl `.tar.gz` archives for x86_64 and ARM64, plus
