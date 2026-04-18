@@ -47,8 +47,9 @@ jobs:
       - name: Verify host target
         run: |
           set -euo pipefail
-          rustc -vV
-          rustc -vV | grep -q "host: ${{ matrix.target_triple }}"
+          rustc_version="$(rustc -vV)"
+          printf '%s\n' "${rustc_version}"
+          grep -Fqx "host: ${{ matrix.target_triple }}" <<< "${rustc_version}"
 
       - name: Install packaging tools
         run: |
