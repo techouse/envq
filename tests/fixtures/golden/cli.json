@@ -1,0 +1,1495 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "cli.get-success",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "get",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "1",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.get-missing-key",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "get",
+        "B",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "envq: B: key not found\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.has-missing-key",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "has",
+        "B",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-table",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=two words\nA=3\n"
+      },
+      "args": [
+        "list",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "A\t1\nB\ttwo words\nA\t3\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-json",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=two words\nA=3\n"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--json"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "[\n  {\n    \"key\": \"A\",\n    \"value\": \"1\"\n  },\n  {\n    \"key\": \"B\",\n    \"value\": \"two words\"\n  },\n  {\n    \"key\": \"A\",\n    \"value\": \"3\"\n  }\n]\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-yaml-empty",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "# no bindings\n"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--yaml"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "[]\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-names-unique",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\nA=3\n"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--names",
+        "--unique"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "A\nB\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-write",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "two words",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "A=\"two words\"\n"
+        }
+      }
+    },
+    {
+      "id": "cli.set-stdout-no-write",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--stdout"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "A=2\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-diff-check",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--diff",
+        "--check"
+      ],
+      "expect": {
+        "exit_code": 4,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1 +1 @@\n-A=1\n+A=2\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.clear-preserves-comment",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1 # keep\n"
+      },
+      "args": [
+        "clear",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "A=\"\" # keep\n"
+        }
+      }
+    },
+    {
+      "id": "cli.remove-alias-removes-duplicates",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\nA=3\n"
+      },
+      "args": [
+        "remove",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "B=2\n"
+        }
+      }
+    },
+    {
+      "id": "cli.stdin-value",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "API_KEY=old\n"
+      },
+      "args": [
+        "set",
+        "API_KEY",
+        "-",
+        "{path}"
+      ],
+      "stdin": "line1\nline2\n",
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "API_KEY=\"line1\\nline2\\n\"\n"
+        }
+      }
+    },
+    {
+      "id": "cli.quiet-suppresses-missing-key-diagnostic",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "--quiet",
+        "get",
+        "B",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.invalid-key-before-file-read",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "get",
+        "1BAD",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 3,
+        "stdout": "",
+        "stderr": "envq: invalid key: 1BAD\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.get-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "get",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-missing-parent-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing_parent": true
+      },
+      "args": [
+        "set",
+        "A",
+        "1",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-unknown-command",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "unknown"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: argument command: invalid choice: 'unknown' (choose from get, set, clear, unset, remove, has, list, completion, help)\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-get-missing-operand",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "get",
+        "KEY"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq get KEY PATH\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-set-missing-operand",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "set",
+        "KEY",
+        "VALUE"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq set KEY VALUE PATH\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-list-extra-operand",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "list",
+        "{path}",
+        "EXTRA"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq list PATH\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-completion-missing-shell",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq completion {bash,zsh,fish,powershell,pwsh}\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.usage-help-extra-operand",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "help",
+        "get",
+        "extra"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq help [COMMAND]\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.help-empty-args",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\n\nRead and edit .env files deterministically.\n\npositional arguments:\n  command     command to run\n  ...         command operands\n\noptions:\n  -h, --help  show this help message and exit\n  --version   show program's version number and exit\n  --quiet     suppress command diagnostics on stderr\n\ncommands:\n  envq [--version] [--quiet]\n  get KEY PATH\n  set KEY VALUE PATH [--stdout|--diff] [--check]\n  set KEY - PATH [--stdout|--diff] [--check]\n  clear KEY PATH [--stdout|--diff] [--check]\n  unset KEY PATH [--stdout|--diff] [--check]\n  remove KEY PATH [--stdout|--diff] [--check]\n  has KEY PATH\n  list PATH [--json|--yaml|--names] [--unique]\n  completion {bash,zsh,fish,powershell,pwsh}\n  help [COMMAND]\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.help-flag",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "--help"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\n\nRead and edit .env files deterministically.\n\npositional arguments:\n  command     command to run\n  ...         command operands\n\noptions:\n  -h, --help  show this help message and exit\n  --version   show program's version number and exit\n  --quiet     suppress command diagnostics on stderr\n\ncommands:\n  envq [--version] [--quiet]\n  get KEY PATH\n  set KEY VALUE PATH [--stdout|--diff] [--check]\n  set KEY - PATH [--stdout|--diff] [--check]\n  clear KEY PATH [--stdout|--diff] [--check]\n  unset KEY PATH [--stdout|--diff] [--check]\n  remove KEY PATH [--stdout|--diff] [--check]\n  has KEY PATH\n  list PATH [--json|--yaml|--names] [--unique]\n  completion {bash,zsh,fish,powershell,pwsh}\n  help [COMMAND]\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.version",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "--version"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "envq 0.1.0\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.help-command-list",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "help",
+        "list"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "usage: envq list PATH [--json|--yaml|--names] [--unique]\n\nPrint bindings in file order as KEY<TAB>VALUE by default.\n--json prints a JSON array of {\"key\", \"value\"} objects.\n--yaml prints a dependency-free YAML sequence.\n--names prints only keys, one per line.\n--unique keeps the first binding for each key and drops later duplicates.\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.help-unknown-topic",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "help",
+        "wat"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: unknown help topic: wat\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-bash",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "bash"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "_envq() {\n    local i cur prev opts cmd\n    COMPREPLY=()\n    if [[ \"${BASH_VERSINFO[0]}\" -ge 4 ]]; then\n        cur=\"$2\"\n    else\n        cur=\"${COMP_WORDS[COMP_CWORD]}\"\n    fi\n    prev=\"$3\"\n    cmd=\"\"\n    opts=\"\"\n\n    for i in \"${COMP_WORDS[@]:0:COMP_CWORD}\"\n    do\n        case \"${cmd},${i}\" in\n            \",$1\")\n                cmd=\"envq\"\n                ;;\n            envq,clear)\n                cmd=\"envq__subcmd__clear\"\n                ;;\n            envq,completion)\n                cmd=\"envq__subcmd__completion\"\n                ;;\n            envq,get)\n                cmd=\"envq__subcmd__get\"\n                ;;\n            envq,has)\n                cmd=\"envq__subcmd__has\"\n                ;;\n            envq,help)\n                cmd=\"envq__subcmd__help\"\n                ;;\n            envq,list)\n                cmd=\"envq__subcmd__list\"\n                ;;\n            envq,remove)\n                cmd=\"envq__subcmd__remove\"\n                ;;\n            envq,set)\n                cmd=\"envq__subcmd__set\"\n                ;;\n            envq,unset)\n                cmd=\"envq__subcmd__unset\"\n                ;;\n            *)\n                ;;\n        esac\n    done\n\n    case \"${cmd}\" in\n        envq)\n            opts=\"-h --help --version --quiet get set clear unset remove has list completion help\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__clear)\n            opts=\"--stdout --diff --check <KEY> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__completion)\n            opts=\"bash zsh fish powershell pwsh\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__get)\n            opts=\"<KEY> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__has)\n            opts=\"<KEY> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__help)\n            opts=\"get set clear unset remove has list completion help\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__list)\n            opts=\"--json --yaml --names --unique <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__remove)\n            opts=\"--stdout --diff --check <KEY> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__set)\n            opts=\"--stdout --diff --check <KEY> <VALUE> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n        envq__subcmd__unset)\n            opts=\"--stdout --diff --check <KEY> <PATH>\"\n            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then\n                COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n                return 0\n            fi\n            case \"${prev}\" in\n                *)\n                    COMPREPLY=()\n                    ;;\n            esac\n            COMPREPLY=( $(compgen -W \"${opts}\" -- \"${cur}\") )\n            return 0\n            ;;\n    esac\n}\n\nif [[ \"${BASH_VERSINFO[0]}\" -eq 4 && \"${BASH_VERSINFO[1]}\" -ge 4 || \"${BASH_VERSINFO[0]}\" -gt 4 ]]; then\n    complete -F _envq -o nosort -o bashdefault -o default envq\nelse\n    complete -F _envq -o bashdefault -o default envq\nfi\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-zsh",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "zsh"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "#compdef envq\n\nautoload -U is-at-least\n\n_envq() {\n    typeset -A opt_args\n    typeset -a _arguments_options\n    local ret=1\n\n    if is-at-least 5.2; then\n        _arguments_options=(-s -S -C)\n    else\n        _arguments_options=(-s -C)\n    fi\n\n    local context curcontext=\"$curcontext\" state line\n    _arguments \"${_arguments_options[@]}\" : \\\n'-h[]' \\\n'--help[]' \\\n'--version[]' \\\n'--quiet[]' \\\n\":: :_envq_commands\" \\\n\"*::: :->envq\" \\\n&& ret=0\n    case $state in\n    (envq)\n        words=($line[1] \"${words[@]}\")\n        (( CURRENT += 1 ))\n        curcontext=\"${curcontext%:*:*}:envq-command-$line[1]:\"\n        case $line[1] in\n            (get)\n_arguments \"${_arguments_options[@]}\" : \\\n':KEY:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(set)\n_arguments \"${_arguments_options[@]}\" : \\\n'--stdout[]' \\\n'--diff[]' \\\n'--check[]' \\\n':KEY:_default' \\\n':VALUE:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(clear)\n_arguments \"${_arguments_options[@]}\" : \\\n'--stdout[]' \\\n'--diff[]' \\\n'--check[]' \\\n':KEY:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(unset)\n_arguments \"${_arguments_options[@]}\" : \\\n'--stdout[]' \\\n'--diff[]' \\\n'--check[]' \\\n':KEY:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(remove)\n_arguments \"${_arguments_options[@]}\" : \\\n'--stdout[]' \\\n'--diff[]' \\\n'--check[]' \\\n':KEY:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(has)\n_arguments \"${_arguments_options[@]}\" : \\\n':KEY:_default' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(list)\n_arguments \"${_arguments_options[@]}\" : \\\n'--json[]' \\\n'--yaml[]' \\\n'--names[]' \\\n'--unique[]' \\\n':PATH:_files' \\\n&& ret=0\n;;\n(completion)\n_arguments \"${_arguments_options[@]}\" : \\\n':SHELL:(bash zsh fish powershell pwsh)' \\\n&& ret=0\n;;\n(help)\n_arguments \"${_arguments_options[@]}\" : \\\n'::COMMAND:(get set clear unset remove has list completion help)' \\\n&& ret=0\n;;\n        esac\n    ;;\nesac\n}\n\n(( $+functions[_envq_commands] )) ||\n_envq_commands() {\n    local commands; commands=(\n'get:' \\\n'set:' \\\n'clear:' \\\n'unset:' \\\n'remove:' \\\n'has:' \\\n'list:' \\\n'completion:' \\\n'help:' \\\n    )\n    _describe -t commands 'envq commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__clear_commands] )) ||\n_envq__subcmd__clear_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq clear commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__completion_commands] )) ||\n_envq__subcmd__completion_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq completion commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__get_commands] )) ||\n_envq__subcmd__get_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq get commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__has_commands] )) ||\n_envq__subcmd__has_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq has commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__help_commands] )) ||\n_envq__subcmd__help_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq help commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__list_commands] )) ||\n_envq__subcmd__list_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq list commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__remove_commands] )) ||\n_envq__subcmd__remove_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq remove commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__set_commands] )) ||\n_envq__subcmd__set_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq set commands' commands \"$@\"\n}\n(( $+functions[_envq__subcmd__unset_commands] )) ||\n_envq__subcmd__unset_commands() {\n    local commands; commands=()\n    _describe -t commands 'envq unset commands' commands \"$@\"\n}\n\nif [ \"$funcstack[1]\" = \"_envq\" ]; then\n    _envq \"$@\"\nelse\n    compdef _envq envq\nfi\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-fish",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "fish"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "# Print an optspec for argparse to handle cmd's options that are independent of any subcommand.\nfunction __fish_envq_global_optspecs\n\tstring join \\n h/help version quiet\nend\n\nfunction __fish_envq_needs_command\n\t# Figure out if the current invocation already has a command.\n\tset -l cmd (commandline -opc)\n\tset -e cmd[1]\n\targparse -s (__fish_envq_global_optspecs) -- $cmd 2>/dev/null\n\tor return\n\tif set -q argv[1]\n\t\t# Also print the command, so this can be used to figure out what it is.\n\t\techo $argv[1]\n\t\treturn 1\n\tend\n\treturn 0\nend\n\nfunction __fish_envq_using_subcommand\n\tset -l cmd (__fish_envq_needs_command)\n\ttest -z \"$cmd\"\n\tand return 1\n\tcontains -- $cmd[1] $argv\nend\n\ncomplete -c envq -n \"__fish_envq_needs_command\" -s h -l help\ncomplete -c envq -n \"__fish_envq_needs_command\" -l version\ncomplete -c envq -n \"__fish_envq_needs_command\" -l quiet\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"get\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"set\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"clear\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"unset\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"remove\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"has\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"list\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"completion\"\ncomplete -c envq -n \"__fish_envq_needs_command\" -f -a \"help\"\ncomplete -c envq -n \"__fish_envq_using_subcommand set\" -l stdout\ncomplete -c envq -n \"__fish_envq_using_subcommand set\" -l diff\ncomplete -c envq -n \"__fish_envq_using_subcommand set\" -l check\ncomplete -c envq -n \"__fish_envq_using_subcommand clear\" -l stdout\ncomplete -c envq -n \"__fish_envq_using_subcommand clear\" -l diff\ncomplete -c envq -n \"__fish_envq_using_subcommand clear\" -l check\ncomplete -c envq -n \"__fish_envq_using_subcommand unset\" -l stdout\ncomplete -c envq -n \"__fish_envq_using_subcommand unset\" -l diff\ncomplete -c envq -n \"__fish_envq_using_subcommand unset\" -l check\ncomplete -c envq -n \"__fish_envq_using_subcommand remove\" -l stdout\ncomplete -c envq -n \"__fish_envq_using_subcommand remove\" -l diff\ncomplete -c envq -n \"__fish_envq_using_subcommand remove\" -l check\ncomplete -c envq -n \"__fish_envq_using_subcommand list\" -l json\ncomplete -c envq -n \"__fish_envq_using_subcommand list\" -l yaml\ncomplete -c envq -n \"__fish_envq_using_subcommand list\" -l names\ncomplete -c envq -n \"__fish_envq_using_subcommand list\" -l unique\ncomplete -c envq -n \"__fish_envq_using_subcommand completion\" -f -a \"bash zsh fish powershell pwsh\"\ncomplete -c envq -n \"__fish_envq_using_subcommand help\" -f -a \"get set clear unset remove has list completion help\"\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-powershell",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "powershell"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "\nusing namespace System.Management.Automation\nusing namespace System.Management.Automation.Language\n\nRegister-ArgumentCompleter -Native -CommandName 'envq' -ScriptBlock {\n    param($wordToComplete, $commandAst, $cursorPosition)\n\n    $commandElements = $commandAst.CommandElements\n    $command = @(\n        'envq'\n        for ($i = 1; $i -lt $commandElements.Count; $i++) {\n            $element = $commandElements[$i]\n            if ($element -isnot [StringConstantExpressionAst] -or\n                $element.StringConstantType -ne [StringConstantType]::BareWord -or\n                $element.Value.StartsWith('-') -or\n                $element.Value -eq $wordToComplete) {\n                break\n        }\n        $element.Value\n    }) -join ';'\n\n    $completions = @(switch ($command) {\n        'envq' {\n            [CompletionResult]::new('-h', '-h', [CompletionResultType]::ParameterName, 'h')\n            [CompletionResult]::new('--help', '--help', [CompletionResultType]::ParameterName, 'help')\n            [CompletionResult]::new('--version', '--version', [CompletionResultType]::ParameterName, 'version')\n            [CompletionResult]::new('--quiet', '--quiet', [CompletionResultType]::ParameterName, 'quiet')\n            [CompletionResult]::new('get', 'get', [CompletionResultType]::ParameterValue, 'get')\n            [CompletionResult]::new('set', 'set', [CompletionResultType]::ParameterValue, 'set')\n            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'clear')\n            [CompletionResult]::new('unset', 'unset', [CompletionResultType]::ParameterValue, 'unset')\n            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'remove')\n            [CompletionResult]::new('has', 'has', [CompletionResultType]::ParameterValue, 'has')\n            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'list')\n            [CompletionResult]::new('completion', 'completion', [CompletionResultType]::ParameterValue, 'completion')\n            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'help')\n            break\n        }\n        'envq;get' {\n            break\n        }\n        'envq;set' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;clear' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;unset' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;remove' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;has' {\n            break\n        }\n        'envq;list' {\n            [CompletionResult]::new('--json', '--json', [CompletionResultType]::ParameterName, 'json')\n            [CompletionResult]::new('--yaml', '--yaml', [CompletionResultType]::ParameterName, 'yaml')\n            [CompletionResult]::new('--names', '--names', [CompletionResultType]::ParameterName, 'names')\n            [CompletionResult]::new('--unique', '--unique', [CompletionResultType]::ParameterName, 'unique')\n            break\n        }\n        'envq;completion' {\n            [CompletionResult]::new('bash', 'bash', [CompletionResultType]::ParameterValue, 'bash')\n            [CompletionResult]::new('zsh', 'zsh', [CompletionResultType]::ParameterValue, 'zsh')\n            [CompletionResult]::new('fish', 'fish', [CompletionResultType]::ParameterValue, 'fish')\n            [CompletionResult]::new('powershell', 'powershell', [CompletionResultType]::ParameterValue, 'powershell')\n            [CompletionResult]::new('pwsh', 'pwsh', [CompletionResultType]::ParameterValue, 'pwsh')\n            break\n        }\n        'envq;help' {\n            [CompletionResult]::new('get', 'get', [CompletionResultType]::ParameterValue, 'get')\n            [CompletionResult]::new('set', 'set', [CompletionResultType]::ParameterValue, 'set')\n            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'clear')\n            [CompletionResult]::new('unset', 'unset', [CompletionResultType]::ParameterValue, 'unset')\n            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'remove')\n            [CompletionResult]::new('has', 'has', [CompletionResultType]::ParameterValue, 'has')\n            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'list')\n            [CompletionResult]::new('completion', 'completion', [CompletionResultType]::ParameterValue, 'completion')\n            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'help')\n            break\n        }\n    })\n\n    $completions.Where{ $_.CompletionText -like \"$wordToComplete*\" } |\n        Sort-Object -Property ListItemText\n}\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-pwsh",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "pwsh"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "\nusing namespace System.Management.Automation\nusing namespace System.Management.Automation.Language\n\nRegister-ArgumentCompleter -Native -CommandName 'envq' -ScriptBlock {\n    param($wordToComplete, $commandAst, $cursorPosition)\n\n    $commandElements = $commandAst.CommandElements\n    $command = @(\n        'envq'\n        for ($i = 1; $i -lt $commandElements.Count; $i++) {\n            $element = $commandElements[$i]\n            if ($element -isnot [StringConstantExpressionAst] -or\n                $element.StringConstantType -ne [StringConstantType]::BareWord -or\n                $element.Value.StartsWith('-') -or\n                $element.Value -eq $wordToComplete) {\n                break\n        }\n        $element.Value\n    }) -join ';'\n\n    $completions = @(switch ($command) {\n        'envq' {\n            [CompletionResult]::new('-h', '-h', [CompletionResultType]::ParameterName, 'h')\n            [CompletionResult]::new('--help', '--help', [CompletionResultType]::ParameterName, 'help')\n            [CompletionResult]::new('--version', '--version', [CompletionResultType]::ParameterName, 'version')\n            [CompletionResult]::new('--quiet', '--quiet', [CompletionResultType]::ParameterName, 'quiet')\n            [CompletionResult]::new('get', 'get', [CompletionResultType]::ParameterValue, 'get')\n            [CompletionResult]::new('set', 'set', [CompletionResultType]::ParameterValue, 'set')\n            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'clear')\n            [CompletionResult]::new('unset', 'unset', [CompletionResultType]::ParameterValue, 'unset')\n            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'remove')\n            [CompletionResult]::new('has', 'has', [CompletionResultType]::ParameterValue, 'has')\n            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'list')\n            [CompletionResult]::new('completion', 'completion', [CompletionResultType]::ParameterValue, 'completion')\n            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'help')\n            break\n        }\n        'envq;get' {\n            break\n        }\n        'envq;set' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;clear' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;unset' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;remove' {\n            [CompletionResult]::new('--stdout', '--stdout', [CompletionResultType]::ParameterName, 'stdout')\n            [CompletionResult]::new('--diff', '--diff', [CompletionResultType]::ParameterName, 'diff')\n            [CompletionResult]::new('--check', '--check', [CompletionResultType]::ParameterName, 'check')\n            break\n        }\n        'envq;has' {\n            break\n        }\n        'envq;list' {\n            [CompletionResult]::new('--json', '--json', [CompletionResultType]::ParameterName, 'json')\n            [CompletionResult]::new('--yaml', '--yaml', [CompletionResultType]::ParameterName, 'yaml')\n            [CompletionResult]::new('--names', '--names', [CompletionResultType]::ParameterName, 'names')\n            [CompletionResult]::new('--unique', '--unique', [CompletionResultType]::ParameterName, 'unique')\n            break\n        }\n        'envq;completion' {\n            [CompletionResult]::new('bash', 'bash', [CompletionResultType]::ParameterValue, 'bash')\n            [CompletionResult]::new('zsh', 'zsh', [CompletionResultType]::ParameterValue, 'zsh')\n            [CompletionResult]::new('fish', 'fish', [CompletionResultType]::ParameterValue, 'fish')\n            [CompletionResult]::new('powershell', 'powershell', [CompletionResultType]::ParameterValue, 'powershell')\n            [CompletionResult]::new('pwsh', 'pwsh', [CompletionResultType]::ParameterValue, 'pwsh')\n            break\n        }\n        'envq;help' {\n            [CompletionResult]::new('get', 'get', [CompletionResultType]::ParameterValue, 'get')\n            [CompletionResult]::new('set', 'set', [CompletionResultType]::ParameterValue, 'set')\n            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'clear')\n            [CompletionResult]::new('unset', 'unset', [CompletionResultType]::ParameterValue, 'unset')\n            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'remove')\n            [CompletionResult]::new('has', 'has', [CompletionResultType]::ParameterValue, 'has')\n            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'list')\n            [CompletionResult]::new('completion', 'completion', [CompletionResultType]::ParameterValue, 'completion')\n            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'help')\n            break\n        }\n    })\n\n    $completions.Where{ $_.CompletionText -like \"$wordToComplete*\" } |\n        Sort-Object -Property ListItemText\n}\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.completion-unknown-shell",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "completion",
+        "cmd"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: unsupported completion shell: cmd\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.mutating-output-options-mutually-exclusive",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--stdout",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: choose only one output option for envq set\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-output-options-mutually-exclusive",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--json",
+        "--yaml"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: choose only one list output format for envq list\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.duplicate-check-option",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--check",
+        "--check"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: duplicate option for envq set: --check\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.duplicate-unique-option",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--unique",
+        "--unique"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: duplicate option for envq list: --unique\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.unknown-trailing-mutation-option",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--bogus"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "usage: envq [-h] [--version] [--quiet] {get,set,clear,unset,remove,has,list,completion,help} ...\nenvq: error: expected operands: envq set KEY VALUE PATH\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.has-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "has",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.unset-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "unset",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.remove-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "remove",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "list",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.clear-missing-parent-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing_parent": true
+      },
+      "args": [
+        "clear",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: No such file or directory\n",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.get-directory-path-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "directory": true
+      },
+      "args": [
+        "get",
+        "A",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "envq: {path}: Is a directory\n",
+        "file": {
+          "directory": true
+        }
+      }
+    },
+    {
+      "id": "cli.unset-missing-key-does-not-write",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1"
+      },
+      "args": [
+        "unset",
+        "B",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "envq: B: key not found\n",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-dash-prefixed-value",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "--help",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "A=--help\n"
+        }
+      }
+    },
+    {
+      "id": "cli.set-output-option-name-as-value",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "--stdout",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "A=--stdout\n"
+        }
+      }
+    },
+    {
+      "id": "cli.set-empty-stdin",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "API_KEY=old\n"
+      },
+      "args": [
+        "set",
+        "API_KEY",
+        "-",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "API_KEY=\n"
+        }
+      },
+      "stdin": ""
+    },
+    {
+      "id": "cli.set-private-key-stdin",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "API_KEY=old\n"
+      },
+      "args": [
+        "set",
+        "API_KEY",
+        "-",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "API_KEY=\"-----BEGIN PRIVATE KEY-----\\nabc123\\n-----END PRIVATE KEY-----\\n\"\n"
+        }
+      },
+      "stdin": "-----BEGIN PRIVATE KEY-----\nabc123\n-----END PRIVATE KEY-----\n"
+    },
+    {
+      "id": "cli.set-stdout-missing-file-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "missing": true
+      },
+      "args": [
+        "set",
+        "A",
+        "1",
+        "{path}",
+        "--stdout"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "A=1\n",
+        "stderr": "",
+        "file": {
+          "missing": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-check-would-change",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--check"
+      ],
+      "expect": {
+        "exit_code": 4,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-check-unchanged",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "1",
+        "{path}",
+        "--check"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.set-check-stdout-unchanged",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "1",
+        "{path}",
+        "--stdout",
+        "--check"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "A=1\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.unset-stdout-no-write",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\n"
+      },
+      "args": [
+        "unset",
+        "A",
+        "{path}",
+        "--stdout"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "B=2\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.diff-multiline-context",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\nC=3\n"
+      },
+      "args": [
+        "set",
+        "B",
+        "x",
+        "{path}",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1,3 +1,3 @@\n A=1\n-B=2\n+B=x\n C=3\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.diff-missing-eof-newline-posix",
+      "kind": "cli",
+      "platform": "posix",
+      "input": {
+        "text": "A=1"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1 +1 @@\n-A=1+A=2\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.diff-crlf",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/crlf_worker_input.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "set",
+        "RETRIES",
+        "5",
+        "{path}",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1,4 +1,4 @@\n # Windows-style env\r\n APP_NAME=Worker\r\n-RETRIES=3\r\n+RETRIES=5\r\n CSV_REGIONS=north,south,east\r\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.diff-multi-hunk",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\nC=3\nD=4\nE=5\nF=6\nG=7\nH=8\nI=9\n"
+      },
+      "args": [
+        "set",
+        "A",
+        "x",
+        "{path}",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1,4 +1,4 @@\n-A=1\n+A=x\n B=2\n C=3\n D=4\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-json-invalid-utf8",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/invalid_utf8.env.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--json"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": {
+          "file": "files/cli.list-json-invalid-utf8_stdout.escaped",
+          "format": "escaped-bytes"
+        },
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.list-yaml-invalid-utf8",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/invalid_utf8.env.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "list",
+        "{path}",
+        "--yaml"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": {
+          "file": "files/cli.list-yaml-invalid-utf8_stdout.escaped",
+          "format": "escaped-bytes"
+        },
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.surrogateescape-preserves-invalid-utf8",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/invalid_utf8.env.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "set",
+        "A",
+        "2",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "file": "files/cli.surrogateescape-preserves-invalid-utf8_file.escaped",
+          "format": "escaped-bytes"
+        }
+      }
+    },
+    {
+      "id": "cli.real-life-service-list",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/real_life_service_input.env",
+        "format": "utf-8"
+      },
+      "args": [
+        "list",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "APP_NAME\tCheckout API\nPORT\t8080\nFEATURE_FLAGS\tsearch,payments,emails\nTSV_COLUMNS\tid\tname\tstatus\nEMPTY\t\nDATABASE_URL\tpostgres://user:pass@localhost:5432/app\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.real-life-service-set-app-name",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/real_life_service_input.env",
+        "format": "utf-8"
+      },
+      "args": [
+        "set",
+        "APP_NAME",
+        "Checkout API v2",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "# Service settings\nAPP_NAME=\"Checkout API v2\"\nPORT=8080\nFEATURE_FLAGS=search,payments,emails\nTSV_COLUMNS=\"id\\tname\\tstatus\"\nEMPTY=\nexport DATABASE_URL=postgres://user:pass@localhost:5432/app # local only\nMALFORMED LINE\n"
+        }
+      }
+    },
+    {
+      "id": "cli.strict-invalid-list",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/strict_invalid_input.env",
+        "format": "utf-8"
+      },
+      "args": [
+        "list",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "ok\t1\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.strict-invalid-set-lowercase-key",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/strict_invalid_input.env",
+        "format": "utf-8"
+      },
+      "args": [
+        "set",
+        "ok",
+        "two words",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "'a'=b\n[=b\nno_value_var\nuglyKey[%$=\"S3cr3t_P4ssw#rD\" #\nexport ok=\"two words\"\n"
+        }
+      }
+    },
+    {
+      "id": "cli.crlf-worker-list",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/crlf_worker_input.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "list",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "APP_NAME\tWorker\nRETRIES\t3\nCSV_REGIONS\tnorth,south,east\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "cli.crlf-worker-set-app-name",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "file": "files/crlf_worker_input.escaped",
+        "format": "escaped-bytes"
+      },
+      "args": [
+        "set",
+        "APP_NAME",
+        "Worker Service",
+        "{path}"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "file": {
+          "text": "# Windows-style env\r\nAPP_NAME=\"Worker Service\"\r\nRETRIES=3\r\nCSV_REGIONS=north,south,east\r\n"
+        }
+      }
+    },
+    {
+      "id": "cli.diff-multi-hunk-unset",
+      "kind": "cli",
+      "platform": "all",
+      "input": {
+        "text": "A=1\nB=2\nC=3\nD=4\nE=5\nF=6\nG=7\nH=8\nA=9\n"
+      },
+      "args": [
+        "unset",
+        "A",
+        "{path}",
+        "--diff"
+      ],
+      "expect": {
+        "exit_code": 0,
+        "stdout": "--- {path} (before)\n+++ {path} (after)\n@@ -1,4 +1,3 @@\n-A=1\n B=2\n C=3\n D=4\n@@ -6,4 +5,3 @@\n F=6\n G=7\n H=8\n-A=9\n",
+        "stderr": "",
+        "file": {
+          "same_as_input": true
+        }
+      }
+    }
+  ]
+}

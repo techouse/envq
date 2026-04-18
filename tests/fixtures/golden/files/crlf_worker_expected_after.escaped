@@ -1,0 +1,1 @@
+# Windows-style env\r\nAPP_NAME="Worker Service"\r\nRETRIES=5\r\nCSV_REGIONS=north,south,east\r\nTSV_PARTITIONS="alpha\\tbeta\\tgamma"\r\n

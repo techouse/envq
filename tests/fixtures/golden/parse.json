@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "parse.simple-binding",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "KEY=value\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "KEY",
+            "value"
+          ]
+        ],
+        "line_kinds": [
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.empty-export-comments-spacing",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "\n# top\nexport KEY = value # keep\n  # indented\nEMPTY=\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "KEY",
+            "value"
+          ],
+          [
+            "EMPTY",
+            ""
+          ]
+        ],
+        "line_kinds": [
+          "blank",
+          "comment",
+          "binding",
+          "comment",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.quotes-and-escapes",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "SINGLE='one two'\nDOUBLE=\"two # \\n\\r\\t\\\\\\\"\"\nUNKNOWN=\"a\\qb\"\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "SINGLE",
+            "one two"
+          ],
+          [
+            "DOUBLE",
+            "two # \n\r\t\\\""
+          ],
+          [
+            "UNKNOWN",
+            "a\\qb"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.hash-ambiguity-and-inline-comment",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=a#b\nB=#c\nC=value # comment\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "a#b"
+          ],
+          [
+            "B",
+            "#c"
+          ],
+          [
+            "C",
+            "value"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.invalid-and-unsupported-lines",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "bad line\n1BAD=x\nA=\"unterminated\nA: b\n"
+      },
+      "expect": {
+        "bindings": [],
+        "line_kinds": [
+          "invalid",
+          "invalid",
+          "invalid",
+          "invalid"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.invalid-quoted-suffix",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=\"value\"suffix\n"
+      },
+      "expect": {
+        "bindings": [],
+        "line_kinds": [
+          "invalid"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.lf-crlf-cr-and-missing-eof",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "file": "files/parse_newlines.escaped",
+        "format": "escaped-bytes"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "1"
+          ],
+          [
+            "B",
+            "2"
+          ],
+          [
+            "C",
+            "3"
+          ],
+          [
+            "D",
+            "4"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.missing-eof-newline",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=1"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "1"
+          ]
+        ],
+        "line_kinds": [
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.dotenv-lowercase-and-export",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "export port=8000\nexport export_a=1\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "port",
+            "8000"
+          ],
+          [
+            "export_a",
+            "1"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.dotenv-comments-and-blanks",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "a=b\n# comment 1\n\nc=d\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "a",
+            "b"
+          ],
+          [
+            "c",
+            "d"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "comment",
+          "blank",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.dotenv-space-and-tab-values",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=b c\nB=b\tc\nC=b  c\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "b c"
+          ],
+          [
+            "B",
+            "b\tc"
+          ],
+          [
+            "C",
+            "b  c"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.dotenv-unicode-values",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=à\nB=\"à\"\nC=b  c\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "à"
+          ],
+          [
+            "B",
+            "à"
+          ],
+          [
+            "C",
+            "b  c"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.dotenv-quoted-escapes",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A=\"b\\nc\"\nB='b\\nc'\nC=\"b\\\"c\"\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "A",
+            "b\nc"
+          ],
+          [
+            "B",
+            "b\\nc"
+          ],
+          [
+            "C",
+            "b\"c"
+          ]
+        ],
+        "line_kinds": [
+          "binding",
+          "binding",
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.unsupported-dotenv-forms-invalid",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "A\n\"A\"=b\nA: b\n"
+      },
+      "expect": {
+        "bindings": [],
+        "line_kinds": [
+          "invalid",
+          "invalid",
+          "invalid"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    },
+    {
+      "id": "parse.multiple-spaces-before-inline-comment",
+      "kind": "parse",
+      "platform": "all",
+      "input": {
+        "text": "KEY=value   # keep\n"
+      },
+      "expect": {
+        "bindings": [
+          [
+            "KEY",
+            "value"
+          ]
+        ],
+        "line_kinds": [
+          "binding"
+        ],
+        "rendered": {
+          "same_as_input": true
+        }
+      }
+    }
+  ]
+}

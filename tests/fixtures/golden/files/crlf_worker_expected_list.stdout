@@ -1,0 +1,4 @@
+APP_NAME	Worker Service
+RETRIES	5
+CSV_REGIONS	north,south,east
+TSV_PARTITIONS	alpha	beta	gamma

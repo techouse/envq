@@ -1,0 +1,6 @@
+APP_NAME	Checkout API
+PORT	8080
+FEATURE_FLAGS	search,payments,emails
+TSV_COLUMNS	id	name	status
+EMPTY	
+DATABASE_URL	postgres://user:pass@localhost:5432/app

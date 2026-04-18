@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "edit.set-existing-first-duplicate",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "x"
+      },
+      "input": {
+        "text": "A=1\nA=2\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=x\nA=2\n"
+        }
+      }
+    },
+    {
+      "id": "edit.append-missing-key",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "B",
+        "value": "two words"
+      },
+      "input": {
+        "text": "A=1\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=1\nB=\"two words\"\n"
+        }
+      }
+    },
+    {
+      "id": "edit.clear-existing-preserves-comment",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "clear",
+        "key": "A"
+      },
+      "input": {
+        "text": "A=1 # keep\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=\"\" # keep\n"
+        }
+      }
+    },
+    {
+      "id": "edit.clear-appends-missing-key",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "clear",
+        "key": "B"
+      },
+      "input": {
+        "text": "A=1\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=1\nB=\n"
+        }
+      }
+    },
+    {
+      "id": "edit.unset-removes-all-duplicates",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "unset",
+        "key": "A"
+      },
+      "input": {
+        "text": "A=1\nB=2\nA=3\n"
+      },
+      "expect": {
+        "removed_count": 2,
+        "output": {
+          "text": "B=2\n"
+        }
+      }
+    },
+    {
+      "id": "edit.preserve-invalid-comments-and-blanks",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "2"
+      },
+      "input": {
+        "text": "bad line\n# c\n\nA=1\n"
+      },
+      "expect": {
+        "output": {
+          "text": "bad line\n# c\n\nA=2\n"
+        }
+      }
+    },
+    {
+      "id": "edit.mixed-newlines-preserved",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "B",
+        "value": "x"
+      },
+      "input": {
+        "file": "files/edit_mixed_newlines_input.escaped",
+        "format": "escaped-bytes"
+      },
+      "expect": {
+        "output": {
+          "file": "files/edit_mixed_newlines_output.escaped",
+          "format": "escaped-bytes"
+        }
+      }
+    },
+    {
+      "id": "edit.no-existing-terminator-posix",
+      "kind": "edit",
+      "platform": "posix",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "2"
+      },
+      "input": {
+        "text": "A=1"
+      },
+      "expect": {
+        "output": {
+          "text": "A=2\n"
+        }
+      }
+    },
+    {
+      "id": "edit.no-existing-terminator-windows",
+      "kind": "edit",
+      "platform": "windows",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "2"
+      },
+      "input": {
+        "text": "A=1"
+      },
+      "expect": {
+        "output": {
+          "text": "A=2\r\n"
+        }
+      }
+    },
+    {
+      "id": "edit.set-empty-preserves-inline-comment",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": ""
+      },
+      "input": {
+        "text": "A = old # keep\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A = \"\" # keep\n"
+        }
+      }
+    },
+    {
+      "id": "edit.set-preserves-trailing-whitespace",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "new"
+      },
+      "input": {
+        "text": "A=\"old\"   \n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=\"new\"   \n"
+        }
+      }
+    },
+    {
+      "id": "edit.unset-can-empty-file",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "unset",
+        "key": "A"
+      },
+      "input": {
+        "text": "A=1\nA=2"
+      },
+      "expect": {
+        "removed_count": 2,
+        "output": {
+          "text": ""
+        }
+      }
+    },
+    {
+      "id": "edit.set-control-character-quotes",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "\u001f"
+      },
+      "input": {
+        "text": "A=1\n"
+      },
+      "expect": {
+        "output": {
+          "text": "A=\"\u001f\"\n"
+        }
+      }
+    },
+    {
+      "id": "edit.invalid-utf8-preserved-on-unrelated-set",
+      "kind": "edit",
+      "platform": "all",
+      "operation": {
+        "name": "set",
+        "key": "A",
+        "value": "2"
+      },
+      "input": {
+        "file": "files/edit.invalid-utf8-preserved-on-unrelated-set_input.escaped",
+        "format": "escaped-bytes"
+      },
+      "expect": {
+        "output": {
+          "file": "files/edit.invalid-utf8-preserved-on-unrelated-set_output.escaped",
+          "format": "escaped-bytes"
+        }
+      }
+    }
+  ]
+}
