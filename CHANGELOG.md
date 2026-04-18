@@ -2,6 +2,13 @@
 
 All notable changes to envq are documented here.
 
+## 0.1.2 - 2026-04-18
+
+- Reached full source coverage for the shipped crate in the maintained coverage target.
+- Hardened defensive diff fallback paths used when the diff engine input limits are exceeded.
+- Hardened PowerShell completion patching so unexpected non-UTF-8 generator output is preserved instead of cleared.
+- Added regression coverage for internal diff and completion edge cases without changing CLI behavior.
+
 ## 0.1.1 - 2026-04-18
 
 - Added crate homepage metadata for package registries.
