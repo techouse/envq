@@ -91,6 +91,15 @@ fn generated_powershell_completion_contains_patched_positionals() {
     assert_powershell_case_contains(&script, "'envq;help' {", "completion");
 }
 
+#[test]
+fn powershell_positional_patch_preserves_unexpected_non_utf8_output() {
+    let mut output = vec![b'p', 0xff, b's'];
+
+    super::super::completion::append_powershell_positional_values(&mut output);
+
+    assert_eq!(output, vec![b'p', 0xff, b's']);
+}
+
 fn assert_completion_contract(shell: &str, stdout: &[u8]) {
     let output = String::from_utf8_lossy(stdout);
     for expected in [

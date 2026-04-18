@@ -76,13 +76,14 @@ fn append_fish_positional_values(output: &mut Vec<u8>) {
     );
 }
 
-fn append_powershell_positional_values(output: &mut Vec<u8>) {
+pub(super) fn append_powershell_positional_values(output: &mut Vec<u8>) {
     // `clap_complete` 4.6's PowerShell generator does not emit finite
     // positional value choices. Patch those generated switch cases in place so
     // `envq completion` and `envq help` complete their documented values.
-    let Ok(mut script) = String::from_utf8(std::mem::take(output)) else {
+    let Ok(script) = std::str::from_utf8(output) else {
         return;
     };
+    let mut script = script.to_owned();
     let _completion_case_found =
         insert_powershell_case_values(&mut script, "'envq;completion' {", spec::COMPLETION_SHELLS);
     let _help_case_found =
