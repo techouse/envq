@@ -1,0 +1,310 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  msrv-meta:
+    name: Read MSRV
+    runs-on: ubuntu-latest
+    outputs:
+      msrv: ${{ steps.read-msrv.outputs.msrv }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: read-msrv
+        name: Read rust-version from Cargo.toml
+        run: |
+          set -euo pipefail
+          msrv="$(
+            awk -F'"' '
+              /^[[:space:]]*\[package\][[:space:]]*$/ { in_package = 1; next }
+              /^[[:space:]]*\[/ { in_package = 0 }
+              in_package && /^[[:space:]]*rust-version[[:space:]]*=/ { print $2; exit }
+            ' Cargo.toml
+          )"
+          if [[ -z "$msrv" ]]; then
+            echo "failed to read package.rust-version from Cargo.toml" >&2
+            exit 1
+          fi
+          echo "msrv=${msrv}" >> "$GITHUB_OUTPUT"
+
+  stable:
+    name: Stable test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --locked
+
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format check
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Doc tests
+        run: cargo test --doc --locked
+
+      - name: Public docs
+        env:
+          RUSTDOCFLAGS: -D warnings --cfg docsrs
+        run: cargo doc --locked --no-deps --lib
+
+      - name: Missing public docs
+        env:
+          RUSTFLAGS: -D missing_docs
+        run: cargo check --lib --all-features --locked
+
+  msrv:
+    name: MSRV (${{ needs.msrv-meta.outputs.msrv }})
+    needs: msrv-meta
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: ${{ needs.msrv-meta.outputs.msrv }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test on MSRV
+        run: cargo test --locked
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Package contents
+        run: |
+          set -euo pipefail
+          cargo package --locked --list > /tmp/package-list.txt
+          cat /tmp/package-list.txt
+          ! grep -E '^(\.github/|\.history/|\.gitignore$|AGENTS\.md$|fuzz/|scripts/|src/.*/tests\.rs$|src/.*/tests/|tests/)' /tmp/package-list.txt
+
+      - name: Package check
+        run: cargo package --locked
+
+  completion-smoke:
+    name: Completion smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install shells
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y zsh fish
+
+      - name: Build envq
+        run: cargo build --locked
+
+      - name: Generate completions
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/envq-completions
+          ./target/debug/envq completion bash > /tmp/envq-completions/envq.bash
+          ./target/debug/envq completion zsh > /tmp/envq-completions/_envq
+          ./target/debug/envq completion fish > /tmp/envq-completions/envq.fish
+
+      - name: Bash completion smoke
+        run: |
+          set -euo pipefail
+          source /tmp/envq-completions/envq.bash
+          complete -p envq
+
+          COMP_WORDS=(envq completion "")
+          COMP_CWORD=2
+          _envq envq "" completion
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx bash
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx zsh
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx fish
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx powershell
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx pwsh
+
+          COMP_WORDS=(envq list --)
+          COMP_CWORD=2
+          _envq envq -- list
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx -- --json
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx -- --yaml
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx -- --names
+          printf '%s\n' "${COMPREPLY[@]}" | grep -qx -- --unique
+
+      - name: Zsh completion smoke
+        run: |
+          set -euo pipefail
+          zsh -n /tmp/envq-completions/_envq
+          zsh -fc '
+            autoload -Uz compinit
+            compinit -D -i
+            source /tmp/envq-completions/_envq
+            whence -w _envq
+            [[ ${_comps[envq]} == _envq ]]
+          '
+
+      - name: Fish completion smoke
+        run: |
+          set -euo pipefail
+          fish -n /tmp/envq-completions/envq.fish
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq completion " | cut -f1 | grep -qx bash'
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq completion " | cut -f1 | grep -qx zsh'
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq completion " | cut -f1 | grep -qx fish'
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq completion " | cut -f1 | grep -qx powershell'
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq completion " | cut -f1 | grep -qx pwsh'
+          fish -c 'source /tmp/envq-completions/envq.fish; complete -C "envq list --" | cut -f1 | grep -qx -- --json'
+
+  powershell-completion-smoke:
+    name: PowerShell completion smoke
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build envq
+        run: cargo build --locked
+
+      - name: PowerShell completion smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $completionRoot = Join-Path $env:TEMP "envq-completions"
+          New-Item -ItemType Directory -Force -Path $completionRoot | Out-Null
+          $powershellPath = Join-Path $completionRoot "envq.ps1"
+          $pwshPath = Join-Path $completionRoot "envq-pwsh.ps1"
+
+          .\target\debug\envq.exe completion powershell | Set-Content -Encoding utf8 $powershellPath
+          .\target\debug\envq.exe completion pwsh | Set-Content -Encoding utf8 $pwshPath
+
+          $powershellScript = Get-Content -Raw $powershellPath
+          $pwshScript = Get-Content -Raw $pwshPath
+          if ($powershellScript -ne $pwshScript) {
+            throw "powershell and pwsh completions differ"
+          }
+          if ($powershellScript -notmatch "Register-ArgumentCompleter") {
+            throw "missing Register-ArgumentCompleter"
+          }
+
+          . $powershellPath
+
+          function Assert-CompletionContains($Line, $Expected) {
+            $matches = [System.Management.Automation.CommandCompletion]::CompleteInput($Line, $Line.Length, $null).CompletionMatches.CompletionText
+            if ($matches -notcontains $Expected) {
+              throw "completion '$Line' did not contain '$Expected': $($matches -join ', ')"
+            }
+          }
+
+          Assert-CompletionContains "envq completion " "bash"
+          Assert-CompletionContains "envq completion " "zsh"
+          Assert-CompletionContains "envq completion " "fish"
+          Assert-CompletionContains "envq completion " "powershell"
+          Assert-CompletionContains "envq completion " "pwsh"
+          Assert-CompletionContains "envq list --" "--json"
+          Assert-CompletionContains "envq list --" "--yaml"
+          Assert-CompletionContains "envq set --" "--stdout"
+          Assert-CompletionContains "envq set --" "--diff"
+
+  ci-required:
+    name: CI Required
+    if: ${{ always() }}
+    needs:
+      - stable
+      - quality
+      - msrv
+      - package
+      - completion-smoke
+      - powershell-completion-smoke
+    runs-on: ubuntu-latest
+    env:
+      STABLE_RESULT: ${{ needs.stable.result }}
+      QUALITY_RESULT: ${{ needs.quality.result }}
+      MSRV_RESULT: ${{ needs.msrv.result }}
+      PACKAGE_RESULT: ${{ needs.package.result }}
+      COMPLETION_SMOKE_RESULT: ${{ needs.completion-smoke.result }}
+      POWERSHELL_COMPLETION_SMOKE_RESULT: ${{ needs.powershell-completion-smoke.result }}
+
+    steps:
+      - name: Verify required job results
+        run: |
+          set -euo pipefail
+
+          results=(
+            "stable:${STABLE_RESULT}"
+            "quality:${QUALITY_RESULT}"
+            "msrv:${MSRV_RESULT}"
+            "package:${PACKAGE_RESULT}"
+            "completion-smoke:${COMPLETION_SMOKE_RESULT}"
+            "powershell-completion-smoke:${POWERSHELL_COMPLETION_SMOKE_RESULT}"
+          )
+
+          failed=0
+          for entry in "${results[@]}"; do
+            job="${entry%%:*}"
+            result="${entry#*:}"
+            echo "${job}: ${result}"
+            if [[ "${result}" != "success" ]]; then
+              echo "::error::${job} finished with result '${result}'"
+              failed=1
+            fi
+          done
+
+          exit "${failed}"

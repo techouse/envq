@@ -1,0 +1,120 @@
+.DEFAULT_GOAL := help
+
+CARGO ?= cargo
+CARGO_MSRV ?= cargo +1.88.0
+CARGO_NIGHTLY ?= cargo +nightly
+RUSTDOCFLAGS_DOCS ?= -D warnings --cfg docsrs
+PACKAGE_LIST ?= /tmp/envq-package-list.txt
+FUZZ_TARGETS ?= parse_roundtrip edit_set_unset list_output diff
+FUZZ_SMOKE_SECONDS ?= 30
+
+.PHONY: help build build-release clean fmt fmt-check clippy test test-all test-doc \
+	coverage coverage-html private-reference msrv package-list package-check docs \
+	docs-missing docs-pages publish-dry-run pre-release ci fuzz-build fuzz-smoke \
+	fuzz-soak
+
+help: ## Show available targets
+	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_.-]+:.*## / {printf "%-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+
+build: ## Build the crate
+	$(CARGO) build --locked
+
+build-release: ## Build the crate in release mode
+	$(CARGO) build --release --locked
+
+clean: ## Remove Cargo build artifacts
+	$(CARGO) clean
+	$(CARGO) clean --manifest-path fuzz/Cargo.toml
+
+fmt: ## Format Rust sources, including fuzz targets
+	$(CARGO) fmt
+	$(CARGO) fmt --manifest-path fuzz/Cargo.toml
+
+fmt-check: ## Check Rust formatting, including fuzz targets
+	$(CARGO) fmt --check
+	$(CARGO) fmt --manifest-path fuzz/Cargo.toml --check
+
+clippy: ## Run clippy with CI warning policy
+	$(CARGO) clippy --all-targets --all-features -- -D warnings
+
+test: ## Run default tests
+	$(CARGO) test --locked
+
+test-all: ## Run all-feature tests
+	$(CARGO) test --all-features --locked
+
+test-doc: ## Run documentation tests
+	$(CARGO) test --doc --locked
+
+coverage: ## Generate the published-crate LCOV report used by CI (requires cargo-llvm-cov)
+	$(CARGO) llvm-cov --all-features --locked --lib --tests --lcov --output-path lcov.info
+
+coverage-html: ## Generate a published-crate HTML coverage report (requires cargo-llvm-cov)
+	$(CARGO) llvm-cov --all-features --locked --lib --tests --html
+
+legacy-reference: ## Run ignored legacy differential tests
+	$(CARGO) test --test legacy_reference --locked -- --ignored
+
+msrv: ## Run tests on the crate MSRV (requires toolchain 1.88.0)
+	$(CARGO_MSRV) test --locked
+
+package-list: ## List files included in the published crate package
+	$(CARGO) package --locked --list --allow-dirty > $(PACKAGE_LIST)
+	@cat $(PACKAGE_LIST)
+
+package-check: ## Run the packaging checks used by CI
+	$(CARGO) package --locked --list --allow-dirty > $(PACKAGE_LIST)
+	! grep -E '^(\.github/|\.history/|\.gitignore$$|AGENTS\.md$$|fuzz/|scripts/|src/.*/tests\.rs$$|src/.*/tests/|tests/)' $(PACKAGE_LIST)
+	$(CARGO) package --locked --allow-dirty
+
+docs: ## Build library docs with docs.rs warning settings
+	RUSTDOCFLAGS='$(RUSTDOCFLAGS_DOCS)' $(CARGO) doc --locked --no-deps --lib
+
+docs-missing: ## Check public library docs with missing_docs denied
+	RUSTFLAGS='-D missing_docs' $(CARGO) check --lib --all-features --locked
+
+docs-pages: ## Build docs and add a root redirect page for GitHub Pages
+	$(MAKE) docs
+	@printf '%s\n' \
+		'<!doctype html>' \
+		'<meta charset="utf-8">' \
+		'<meta http-equiv="refresh" content="0; url=./envq/index.html">' \
+		'<link rel="canonical" href="./envq/index.html">' \
+		'<title>envq docs</title>' \
+		'<a href="./envq/index.html">Open envq docs</a>' \
+		> target/doc/index.html
+
+publish-dry-run: ## Verify crates.io publishability without uploading
+	$(CARGO) publish --dry-run --locked --allow-dirty
+
+pre-release: ## Run the full maintainer gate before tagging a release
+	$(MAKE) fmt-check
+	$(MAKE) clippy
+	$(MAKE) test
+	$(MAKE) test-all
+	$(MAKE) test-doc
+	$(MAKE) docs
+	$(MAKE) docs-missing
+	$(MAKE) msrv
+	$(MAKE) package-check
+	$(MAKE) publish-dry-run
+	$(MAKE) build-release
+
+ci: ## Run the main local CI checks except ignored legacy reference and fuzz soak
+	$(MAKE) fmt-check
+	$(MAKE) clippy
+	$(MAKE) test
+	$(MAKE) test-doc
+	$(MAKE) msrv
+	$(MAKE) package-check
+
+fuzz-build: ## Build all cargo-fuzz targets
+	@for target in $(FUZZ_TARGETS); do \
+		$(CARGO_NIGHTLY) fuzz build "$$target"; \
+	done
+
+fuzz-smoke: ## Run a short fuzz soak against all targets
+	ENVQ_FUZZ_SECONDS=$(FUZZ_SMOKE_SECONDS) bash scripts/fuzz_soak.sh
+
+fuzz-soak: ## Run the fuzz soak script from a normal interactive shell
+	bash scripts/fuzz_soak.sh
