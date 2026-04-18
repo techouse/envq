@@ -72,7 +72,7 @@ jobs:
           New-Item -ItemType Directory -Force $packageDir | Out-Null
           Copy-Item "target\$env:TARGET_TRIPLE\release\envq.exe" "$packageDir\envq.exe"
           Copy-Item -Recurse dist\completions "$packageDir\completions"
-          Copy-Item README.md, LICENSE $packageDir
+          Copy-Item README.md, LICENSE, THIRD-PARTY-LICENSES.md $packageDir
           Compress-Archive -Path "$packageDir\*" -DestinationPath "dist\$package.zip"
 
       - name: Upload Windows archive

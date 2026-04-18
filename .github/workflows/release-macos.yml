@@ -140,7 +140,7 @@ jobs:
           mkdir -p "dist/${package}"
           cp dist/envq "dist/${package}/envq"
           cp -R dist/completions "dist/${package}/completions"
-          cp README.md LICENSE "dist/${package}/"
+          cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/${package}/"
           codesign --verify --strict --verbose=2 "dist/${package}/envq"
           ditto -c -k --keepParent "dist/${package}" "dist/${package}.zip"
 

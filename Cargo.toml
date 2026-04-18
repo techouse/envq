@@ -59,6 +59,11 @@ assets = [
     ["README.md", "usr/share/doc/envq/README.md", "644"],
     ["LICENSE", "usr/share/doc/envq/LICENSE", "644"],
     [
+        "THIRD-PARTY-LICENSES.md",
+        "usr/share/doc/envq/THIRD-PARTY-LICENSES.md",
+        "644",
+    ],
+    [
         "target/completions/envq.bash",
         "usr/share/bash-completion/completions/envq",
         "644",
@@ -92,6 +97,12 @@ doc = true
 [[package.metadata.generate-rpm.assets]]
 source = "LICENSE"
 dest = "/usr/share/doc/envq/LICENSE"
+mode = "0644"
+doc = true
+
+[[package.metadata.generate-rpm.assets]]
+source = "THIRD-PARTY-LICENSES.md"
+dest = "/usr/share/doc/envq/THIRD-PARTY-LICENSES.md"
 mode = "0644"
 doc = true
 

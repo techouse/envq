@@ -84,7 +84,7 @@ jobs:
           package="envq-${{ inputs.version }}-${{ matrix.target_triple }}"
           mkdir -p "dist/${package}"
           cp target/release/envq "dist/${package}/envq"
-          cp README.md LICENSE "dist/${package}/"
+          cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/${package}/"
           tar -czf "dist/${package}.tar.gz" -C dist "${package}"
 
       - name: Build musl tar archive
@@ -93,7 +93,7 @@ jobs:
           package="envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}"
           mkdir -p "dist/${package}"
           cp "target/${{ matrix.musl_target_triple }}/release/envq" "dist/${package}/envq"
-          cp README.md LICENSE "dist/${package}/"
+          cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/${package}/"
           tar -czf "dist/${package}.tar.gz" -C dist "${package}"
 
       - name: Build Debian package
