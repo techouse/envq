@@ -135,3 +135,11 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" dist/* \
             --title "${GITHUB_REF_NAME}" \
             --notes-file CHANGELOG.md
+
+  publish-docs:
+    name: Publish docs
+    needs:
+      - github-release
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: write
