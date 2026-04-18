@@ -2,7 +2,15 @@
 
 Byte-preserving `.env` query and editing tool.
 
+[![GitHub Release](https://img.shields.io/github/v/release/techouse/envq)](https://github.com/techouse/envq/releases/latest)
+[![Crates.io Version](https://img.shields.io/crates/v/envq)](https://crates.io/crates/envq)
+[![Crates.io MSRV](https://img.shields.io/crates/msrv/envq)](https://crates.io/crates/envq)
 [![Test](https://github.com/techouse/envq/actions/workflows/test.yml/badge.svg)](https://github.com/techouse/envq/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/techouse/envq/graph/badge.svg?token=E2nyGsMtBw)](https://codecov.io/gh/techouse/envq)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ce234b7f752349f9a35a6904545b2aea)](https://app.codacy.com/gh/techouse/envq/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![GitHub](https://img.shields.io/github/license/techouse/envq)](https://github.com/techouse/envq/blob/main/LICENSE)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/techouse)](https://github.com/sponsors/techouse)
+[![GitHub Repo stars](https://img.shields.io/github/stars/techouse/envq)](https://github.com/techouse/envq/stargazers)
 
 `envq` edits `.env` files deterministically while preserving unrelated bytes, comments,
 spacing, duplicate keys, invalid UTF-8, and newline styles. It is not a dotenv
