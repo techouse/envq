@@ -89,8 +89,10 @@ third-party-licenses: ## Regenerate third-party dependency license notices
 	$(CARGO) about generate --locked about.hbs > THIRD-PARTY-LICENSES.md
 
 third-party-licenses-check: ## Check generated third-party license notices are current
-	$(CARGO) about generate --locked about.hbs > /tmp/envq-third-party-licenses.md
-	diff -u THIRD-PARTY-LICENSES.md /tmp/envq-third-party-licenses.md
+	@tmp="$$(mktemp)"; \
+	trap 'rm -f "$$tmp"' EXIT; \
+	$(CARGO) about generate --locked about.hbs > "$$tmp"; \
+	diff -u THIRD-PARTY-LICENSES.md "$$tmp"
 
 publish-dry-run: ## Verify crates.io publishability without uploading
 	$(CARGO) publish --dry-run --locked --allow-dirty
