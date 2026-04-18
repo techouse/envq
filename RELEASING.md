@@ -76,8 +76,9 @@ target/release/envq completion pwsh >/tmp/envq-pwsh.ps1
    builds a Windows MSVC archive, builds a signed and notarized universal macOS
    archive, publishes to crates.io after those builds pass, generates
    `SHA256SUMS.txt` plus per-artifact `.sha256` sidecars, and creates the
-   GitHub Release. After the GitHub Release is created, the workflow publishes
-   the generated rustdoc site to GitHub Pages.
+   GitHub Release with only the matching version section from `CHANGELOG.md`.
+   After the GitHub Release is created, the workflow publishes the generated
+   rustdoc site to GitHub Pages.
 
 ## Release Provenance
 
