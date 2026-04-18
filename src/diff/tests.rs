@@ -1,6 +1,13 @@
 use std::path::Path;
 
-use super::{Opcode, Tag, grouped_opcodes, unified_diff};
+use std::collections::HashMap;
+
+use imara_diff::Token;
+
+use super::{
+    Opcode, Tag, grouped_opcodes, intern_line, opcodes_with_limits, push_opcode,
+    split_lines_keepends, unified_diff, whole_file_opcodes,
+};
 
 #[test]
 fn emits_no_output_for_identical_inputs() {
@@ -100,4 +107,123 @@ fn grouping_keeps_equal_only_opcodes_out_of_output_groups() {
         3,
     );
     assert!(groups.is_empty());
+}
+
+#[test]
+fn whole_file_fallback_opcodes_cover_empty_delete_insert_and_replace() {
+    assert!(whole_file_opcodes(0, 0).is_empty());
+
+    assert_eq!(
+        whole_file_opcodes(2, 0),
+        vec![Opcode {
+            tag: Tag::Delete,
+            a_start: 0,
+            a_end: 2,
+            b_start: 0,
+            b_end: 0,
+        }]
+    );
+    assert_eq!(
+        whole_file_opcodes(0, 3),
+        vec![Opcode {
+            tag: Tag::Insert,
+            a_start: 0,
+            a_end: 0,
+            b_start: 0,
+            b_end: 3,
+        }]
+    );
+    assert_eq!(
+        whole_file_opcodes(2, 3),
+        vec![
+            Opcode {
+                tag: Tag::Delete,
+                a_start: 0,
+                a_end: 2,
+                b_start: 0,
+                b_end: 0,
+            },
+            Opcode {
+                tag: Tag::Insert,
+                a_start: 2,
+                a_end: 2,
+                b_start: 0,
+                b_end: 3,
+            },
+        ]
+    );
+}
+
+#[test]
+fn push_opcode_merges_adjacent_spans_with_the_same_tag() {
+    let mut opcodes = Vec::new();
+
+    push_opcode(&mut opcodes, Tag::Equal, 0, 1, 0, 1);
+    push_opcode(&mut opcodes, Tag::Equal, 1, 3, 1, 3);
+    push_opcode(&mut opcodes, Tag::Insert, 3, 3, 3, 4);
+
+    assert_eq!(
+        opcodes,
+        vec![
+            Opcode {
+                tag: Tag::Equal,
+                a_start: 0,
+                a_end: 3,
+                b_start: 0,
+                b_end: 3,
+            },
+            Opcode {
+                tag: Tag::Insert,
+                a_start: 3,
+                a_end: 3,
+                b_start: 3,
+                b_end: 4,
+            },
+        ]
+    );
+}
+
+#[test]
+fn intern_line_reuses_tokens_and_rejects_token_overflow() {
+    let mut tokens = HashMap::new();
+    let mut next_token = 0;
+
+    assert_eq!(
+        intern_line(b"A=1\n", &mut tokens, &mut next_token, i32::MAX as u32),
+        Some(Token(0))
+    );
+    assert_eq!(
+        intern_line(b"A=1\n", &mut tokens, &mut next_token, i32::MAX as u32),
+        Some(Token(0))
+    );
+    assert_eq!(next_token, 1);
+
+    next_token = i32::MAX as u32;
+    assert_eq!(
+        intern_line(b"B=2\n", &mut tokens, &mut next_token, i32::MAX as u32),
+        None
+    );
+}
+
+#[test]
+fn opcodes_fall_back_to_whole_file_diff_when_imara_limits_are_exceeded() {
+    let before = [&b"A=1\n"[..]];
+    let after = [&b"B=2\n"[..]];
+
+    assert_eq!(
+        opcodes_with_limits(&before, &after, 1, i32::MAX as u32),
+        whole_file_opcodes(1, 1)
+    );
+    assert_eq!(
+        opcodes_with_limits(&before, &after, i32::MAX as usize, 1),
+        whole_file_opcodes(1, 1)
+    );
+}
+
+#[test]
+fn split_lines_keepends_handles_lf_crlf_bare_cr_and_unterminated_tail() {
+    assert_eq!(
+        split_lines_keepends(b"A=1\nB=2\r\nC=3\rD=4"),
+        vec![&b"A=1\n"[..], &b"B=2\r\n"[..], &b"C=3\r"[..], &b"D=4"[..]]
+    );
 }

@@ -8,6 +8,9 @@ use std::path::Path;
 
 use imara_diff::{Algorithm, Diff, Token};
 
+const MAX_IMARA_SEQUENCE_LEN: usize = i32::MAX as usize;
+const MAX_IMARA_TOKEN_COUNT: u32 = i32::MAX as u32;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Tag {
     Equal,
@@ -79,7 +82,18 @@ pub(crate) fn unified_diff(path: &Path, before: &[u8], after: &[u8]) -> Vec<u8> 
 }
 
 fn opcodes(before: &[&[u8]], after: &[&[u8]]) -> Vec<Opcode> {
-    let Some((before_tokens, after_tokens, token_count)) = intern_lines(before, after) else {
+    opcodes_with_limits(before, after, MAX_IMARA_SEQUENCE_LEN, MAX_IMARA_TOKEN_COUNT)
+}
+
+fn opcodes_with_limits(
+    before: &[&[u8]],
+    after: &[&[u8]],
+    max_sequence_len: usize,
+    max_token_count: u32,
+) -> Vec<Opcode> {
+    let Some((before_tokens, after_tokens, token_count)) =
+        intern_lines(before, after, max_sequence_len, max_token_count)
+    else {
         return whole_file_opcodes(before.len(), after.len());
     };
 
@@ -88,17 +102,22 @@ fn opcodes(before: &[&[u8]], after: &[&[u8]]) -> Vec<Opcode> {
     opcodes_from_hunks(diff.hunks(), before.len(), after.len())
 }
 
-fn intern_lines(before: &[&[u8]], after: &[&[u8]]) -> Option<(Vec<Token>, Vec<Token>, u32)> {
+fn intern_lines(
+    before: &[&[u8]],
+    after: &[&[u8]],
+    max_sequence_len: usize,
+    max_token_count: u32,
+) -> Option<(Vec<Token>, Vec<Token>, u32)> {
     // `imara-diff` supports less than i32::MAX tokens on each side. The guard
     // keeps CLI diff generation from panicking on extreme inputs.
-    if before.len() >= i32::MAX as usize || after.len() >= i32::MAX as usize {
+    if before.len() >= max_sequence_len || after.len() >= max_sequence_len {
         return None;
     }
 
     let mut tokens = HashMap::new();
     let mut next_token = 0;
-    let before_tokens = intern_line_slice(before, &mut tokens, &mut next_token)?;
-    let after_tokens = intern_line_slice(after, &mut tokens, &mut next_token)?;
+    let before_tokens = intern_line_slice(before, &mut tokens, &mut next_token, max_token_count)?;
+    let after_tokens = intern_line_slice(after, &mut tokens, &mut next_token, max_token_count)?;
     Some((before_tokens, after_tokens, next_token))
 }
 
@@ -106,10 +125,11 @@ fn intern_line_slice(
     lines: &[&[u8]],
     tokens: &mut HashMap<Vec<u8>, Token>,
     next_token: &mut u32,
+    max_token_count: u32,
 ) -> Option<Vec<Token>> {
     lines
         .iter()
-        .map(|line| intern_line(line, tokens, next_token))
+        .map(|line| intern_line(line, tokens, next_token, max_token_count))
         .collect()
 }
 
@@ -117,11 +137,12 @@ fn intern_line(
     line: &[u8],
     tokens: &mut HashMap<Vec<u8>, Token>,
     next_token: &mut u32,
+    max_token_count: u32,
 ) -> Option<Token> {
     if let Some(token) = tokens.get(line) {
         return Some(*token);
     }
-    if *next_token >= i32::MAX as u32 {
+    if *next_token >= max_token_count {
         return None;
     }
 
