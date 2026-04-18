@@ -25,12 +25,16 @@ pub(super) fn completion_shell(value: &OsStr) -> Result<CompletionShell, ParseCo
         .get_one::<String>("shell")
         .expect("required shell value validated by clap")
         .as_str();
-    match shell {
-        "bash" => Ok(CompletionShell::Bash),
-        "zsh" => Ok(CompletionShell::Zsh),
-        "fish" => Ok(CompletionShell::Fish),
-        "powershell" | "pwsh" => Ok(CompletionShell::PowerShell),
-        _ => unreachable!("shell value validated by clap"),
+    Ok(completion_shell_from_name(shell).expect("shell value validated by clap"))
+}
+
+pub(super) const fn completion_shell_from_name(shell: &str) -> Option<CompletionShell> {
+    match shell.as_bytes() {
+        b"bash" => Some(CompletionShell::Bash),
+        b"zsh" => Some(CompletionShell::Zsh),
+        b"fish" => Some(CompletionShell::Fish),
+        b"powershell" | b"pwsh" => Some(CompletionShell::PowerShell),
+        _ => None,
     }
 }
 

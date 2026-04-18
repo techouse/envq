@@ -50,6 +50,34 @@ fn completion_shell_validation_uses_clap_complete_output() {
 }
 
 #[test]
+fn completion_shell_name_mapping_rejects_unknown_values() {
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("bash"),
+        Some(CompletionShell::Bash)
+    );
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("zsh"),
+        Some(CompletionShell::Zsh)
+    );
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("fish"),
+        Some(CompletionShell::Fish)
+    );
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("powershell"),
+        Some(CompletionShell::PowerShell)
+    );
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("pwsh"),
+        Some(CompletionShell::PowerShell)
+    );
+    assert_eq!(
+        super::super::completion::completion_shell_from_name("cmd"),
+        None
+    );
+}
+
+#[test]
 fn powershell_case_value_insertion_reports_success() {
     let mut script = "'envq;completion' {\n            break\n        }\n".to_owned();
 
