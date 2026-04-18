@@ -16,14 +16,18 @@ exclude = [
     ".history/",
     ".vscode/**",
     "AGENTS.md",
+    "about.hbs",
+    "about.toml",
     "CODE-OF-CONDUCT.md",
     "fuzz/**",
     "Makefile",
+    "RELEASING.md",
     "scripts/**",
     "src/**/tests.rs",
     "src/**/tests/**",
     "SECURITY.md",
     "tests/**",
+    "THIRD-PARTY-LICENSES.md",
 ]
 
 [features]
