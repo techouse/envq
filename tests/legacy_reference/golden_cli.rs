@@ -18,7 +18,8 @@ fn compare_cli_golden_cases_with_legacy_reference() {
         }
         if matches!(
             case_id(case),
-            "cli.usage-completion-missing-shell"
+            "cli.version"
+                | "cli.usage-completion-missing-shell"
                 | "cli.help-empty-args"
                 | "cli.help-flag"
                 | "cli.completion-bash"

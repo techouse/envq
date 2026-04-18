@@ -38,4 +38,4 @@ Parse cases require `expect.bindings`, `expect.line_kinds`, and `expect.rendered
 
 Edit cases require `operation`, `expect.output`, and, for `unset`, `expect.removed_count`. Supported operations are `set`, `clear`, and `unset`.
 
-CLI cases require `args`, `expect.exit_code`, `expect.stdout`, `expect.stderr`, and `expect.file`. `args`, `stdout`, and `stderr` string values may contain `{path}`, which the test harness expands to the temporary fixture path. `stdout` and `stderr` may also use any text or bytes object except `same_as_input`. CLI `input` may be `{ "missing": true }`, `{ "missing_parent": true }`, or `{ "directory": true }` for file-error cases.
+CLI cases require `args`, `expect.exit_code`, `expect.stdout`, `expect.stderr`, and `expect.file`. `args`, `stdout`, and `stderr` string values may contain `{path}`, which the test harness expands to the temporary fixture path, or `{version}`, which expands to the Cargo package version. `stdout` and `stderr` may also use any text or bytes object except `same_as_input`. CLI `input` may be `{ "missing": true }`, `{ "missing_parent": true }`, or `{ "directory": true }` for file-error cases.

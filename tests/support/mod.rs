@@ -71,7 +71,7 @@ pub fn cli_args_with_path(case: &Value, env_file: &Path) -> Vec<OsString> {
         .iter()
         .map(|value| {
             let argument = value.as_str().expect("arg must be string");
-            OsString::from(expand_path(argument, env_file))
+            OsString::from(expand_placeholders(argument, env_file))
         })
         .collect()
 }
@@ -99,11 +99,11 @@ pub fn assert_expected_cli_file(spec: &Value, env_file: &Path, input_bytes: Opti
 
 pub fn output_bytes(spec: &Value, env_file: &Path) -> Vec<u8> {
     if let Some(text) = spec.as_str() {
-        return expand_path(text, env_file).into_bytes();
+        return expand_placeholders(text, env_file).into_bytes();
     }
     let spec = object(spec);
     if let Some(text) = spec.get("text").and_then(Value::as_str) {
-        return expand_path(text, env_file).into_bytes();
+        return expand_placeholders(text, env_file).into_bytes();
     }
     content_bytes(spec)
 }
@@ -209,8 +209,9 @@ pub fn string_list(value: &Value) -> Vec<String> {
         .collect()
 }
 
-pub fn expand_path(text: &str, path: &Path) -> String {
+pub fn expand_placeholders(text: &str, path: &Path) -> String {
     text.replace("{path}", &path.display().to_string())
+        .replace("{version}", env!("CARGO_PKG_VERSION"))
 }
 
 pub fn json_object(kind: &str, file: &str, format: &str) -> Value {
@@ -263,11 +264,22 @@ impl OsStrBytes for OsStr {
 
 #[cfg(test)]
 mod tests {
-    use super::read_escaped_bytes;
+    use std::path::Path;
+
+    use super::{expand_placeholders, read_escaped_bytes};
 
     #[test]
     fn escaped_bytes_strip_lf_or_crlf_fixture_terminators() {
         assert_eq!(read_escaped_bytes("A\\r\\n\n"), b"A\r\n");
         assert_eq!(read_escaped_bytes("A\\r\\n\r\n"), b"A\r\n");
+    }
+
+    #[test]
+    fn fixture_placeholders_expand_path_and_package_version() {
+        let expanded = expand_placeholders("envq {version}: {path}", Path::new("demo.env"));
+        assert_eq!(
+            expanded,
+            format!("envq {}: demo.env", env!("CARGO_PKG_VERSION"))
+        );
     }
 }

@@ -537,7 +537,7 @@
       ],
       "expect": {
         "exit_code": 0,
-        "stdout": "envq 0.1.0\n",
+        "stdout": "envq {version}\n",
         "stderr": "",
         "file": {
           "missing": true
