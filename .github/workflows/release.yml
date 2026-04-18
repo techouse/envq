@@ -123,16 +123,9 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Attest release artifacts
-        if: ${{ github.event.repository.private == false }}
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/*
-
-      - name: Skip artifact attestations for private repository
-        if: ${{ github.event.repository.private }}
-        run: |
-          echo "GitHub Artifact Attestations are unavailable for this private repository."
-          echo "The release workflow will attest artifacts automatically once the repository is public."
 
       - name: Create GitHub release
         env:

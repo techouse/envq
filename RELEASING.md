@@ -18,8 +18,7 @@ before a release tag is pushed.
 Use the manual `Release Dry Run` workflow before pushing a release tag. The
 default dry run validates package metadata, builds Linux and Windows artifacts,
 generates `SHA256SUMS.txt` plus per-artifact `.sha256` sidecars, creates GitHub
-Artifact Attestations when repository visibility and GitHub plan support them,
-and uploads combined dry-run artifacts.
+Artifact Attestations, and uploads combined dry-run artifacts.
 
 Dry-run artifacts are retained for 1 day. The workflow does not publish to
 crates.io, create a tag, or create a GitHub Release.
@@ -78,15 +77,10 @@ target/release/envq completion pwsh >/tmp/envq-pwsh.ps1
 
 ## Release Provenance
 
-When available, the release workflow creates GitHub Artifact Attestations for
-every final release file, including Linux `.tar.gz`, `.deb`, and `.rpm`
-artifacts, the Windows `.zip`, the macOS `.zip`, per-artifact `.sha256`
-sidecars, and `SHA256SUMS.txt`.
-
-GitHub does not currently make artifact attestation persistence available for
-user-owned private repositories. The workflow skips attestation steps while the
-repository is private and starts producing attestations automatically once the
-repository is public or otherwise eligible.
+The release workflow creates GitHub Artifact Attestations for every final
+release file, including Linux `.tar.gz`, `.deb`, and `.rpm` artifacts, the
+Windows `.zip`, the macOS `.zip`, per-artifact `.sha256` sidecars, and
+`SHA256SUMS.txt`.
 
 Verify a downloaded artifact with:
 

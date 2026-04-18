@@ -122,16 +122,9 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Attest dry-run artifacts
-        if: ${{ github.event.repository.private == false }}
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/*
-
-      - name: Skip dry-run artifact attestations for private repository
-        if: ${{ github.event.repository.private }}
-        run: |
-          echo "GitHub Artifact Attestations are unavailable for this private repository."
-          echo "Dry-run artifacts will still be uploaded with SHA256SUMS.txt."
 
       - name: Upload combined dry-run artifacts
         uses: actions/upload-artifact@v7
