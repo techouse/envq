@@ -7,6 +7,7 @@ rust-version = "1.88"
 license = "BSD-3-Clause"
 readme = "README.md"
 repository = "https://github.com/techouse/envq"
+homepage = "https://techouse.github.io/envq/"
 description = "Byte-preserving .env query and editing tool"
 keywords = ["env", "dotenv", "cli", "configuration", "parser"]
 exclude = [
