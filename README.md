@@ -50,8 +50,9 @@ Or download a release artifact from
 [GitHub Releases](https://github.com/techouse/envq/releases). Linux releases
 include GNU/glibc and musl `.tar.gz` archives for x86_64 and ARM64, plus
 GNU/glibc `.deb` and `.rpm` packages for x86_64 and ARM64. Archives include
-the `envq` binary, `README.md`, and `LICENSE`. Verify downloads with the
-release `SHA256SUMS.txt` file or the per-artifact `.sha256` sidecar.
+the `envq` binary, `README.md`, `LICENSE`, and `THIRD-PARTY-LICENSES.md`.
+Verify downloads with the release `SHA256SUMS.txt` file or the per-artifact
+`.sha256` sidecar.
 
 Install shell completions by writing the generated script to your shell's
 completion directory.

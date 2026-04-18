@@ -10,6 +10,9 @@ Run the full maintainer gate:
 make pre-release
 ```
 
+The gate includes `make third-party-licenses-check`; run
+`make third-party-licenses` first after dependency changes.
+
 The required GitHub Actions workflow must pass on Linux, macOS, and Windows
 before a release tag is pushed.
 
@@ -187,8 +190,9 @@ cargo build --release --locked
 ```
 
 Then archive `target/release/envq` or `target/release/envq.exe` with
-`README.md` and `LICENSE`, generate `SHA256SUMS.txt` plus per-artifact
-`.sha256` sidecars, and upload the files to the GitHub Release.
+`README.md`, `LICENSE`, and `THIRD-PARTY-LICENSES.md`, generate
+`SHA256SUMS.txt` plus per-artifact `.sha256` sidecars, and upload the files to
+the GitHub Release.
 
 Manual Linux packaging fallback, only if the Linux release workflow is
 unavailable:
@@ -203,7 +207,7 @@ target/release/envq completion fish > target/completions/envq.fish
 package="envq-0.1.0-$(rustc -vV | awk '/host:/ {print $2}')"
 mkdir -p "dist/$package"
 cp target/release/envq "dist/$package/envq"
-cp README.md LICENSE "dist/$package/"
+cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/$package/"
 tar -czf "dist/$package.tar.gz" -C dist "$package"
 cargo deb --no-build
 cargo generate-rpm
@@ -227,7 +231,7 @@ if [ -n "$musl_target" ]; then
   musl_package="envq-0.1.0-$musl_target"
   mkdir -p "dist/$musl_package"
   cp "target/$musl_target/release/envq" "dist/$musl_package/envq"
-  cp README.md LICENSE "dist/$musl_package/"
+  cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/$musl_package/"
   tar -czf "dist/$musl_package.tar.gz" -C dist "$musl_package"
 fi
 ```
@@ -244,7 +248,7 @@ target\x86_64-pc-windows-msvc\release\envq.exe completion zsh > "dist\$package\c
 target\x86_64-pc-windows-msvc\release\envq.exe completion fish > "dist\$package\completions\envq.fish"
 target\x86_64-pc-windows-msvc\release\envq.exe completion powershell > "dist\$package\completions\envq.ps1"
 Copy-Item target\x86_64-pc-windows-msvc\release\envq.exe "dist\$package\envq.exe"
-Copy-Item README.md, LICENSE "dist\$package"
+Copy-Item README.md, LICENSE, THIRD-PARTY-LICENSES.md "dist\$package"
 Compress-Archive -Path "dist\$package\*" -DestinationPath "dist\$package.zip"
 ```
 
@@ -269,7 +273,7 @@ codesign \
 package="envq-0.1.0-universal-apple-darwin"
 mkdir -p "dist/$package"
 cp dist/envq "dist/$package/envq"
-cp README.md LICENSE "dist/$package/"
+cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/$package/"
 ditto -c -k --keepParent "dist/$package" "dist/$package.zip"
 xcrun notarytool submit "dist/$package.zip" \
   --keychain-profile "$NOTARYTOOL_KEYCHAIN_PROFILE" \
