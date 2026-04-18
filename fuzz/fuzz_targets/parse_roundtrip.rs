@@ -1,0 +1,7 @@
+#![no_main]
+
+use libfuzzer_sys::fuzz_target;
+
+fuzz_target!(|data: &[u8]| {
+    envq_fuzz::run_parse_roundtrip_bytes(data);
+});
