@@ -20,6 +20,7 @@ exclude = [
     "about.hbs",
     "about.toml",
     "CODE-OF-CONDUCT.md",
+    "docs/",
     "fuzz/**",
     "Makefile",
     "RELEASING.md",
