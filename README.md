@@ -12,33 +12,113 @@ Byte-preserving `.env` query and editing tool.
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/techouse?logo=github)](https://github.com/sponsors/techouse)
 [![GitHub Repo stars](https://img.shields.io/github/stars/techouse/envq)](https://github.com/techouse/envq/stargazers)
 
-`envq` edits `.env` files deterministically while preserving unrelated bytes, comments,
-spacing, duplicate keys, invalid UTF-8, and newline styles. It is not a dotenv
-runtime loader, does not execute shell syntax, and does not read from or write to
-the process environment.
+`envq` edits `.env` files deterministically while preserving unrelated bytes,
+comments, spacing, duplicate keys, invalid UTF-8, and newline styles. It is not
+a dotenv runtime loader, does not execute shell syntax, and does not read from or
+write to the process environment.
 
-The Rust implementation targets Rust 1.88. The CLI behavior documented below is
-the compatibility contract.
+[Getting Started](#getting-started) - [Usage](#usage) -
+[Installation](#installation) - [Compatibility Contract](#compatibility-contract) -
+[Development](#development)
 
-## Library API
+## Getting Started
 
-The CLI behavior documented in this README is the stable compatibility contract.
-The Rust library modules are public for integration and testing during the `0.x`
-series, but their exact API shape is still experimental and may change between
-minor releases.
+<img src="docs/assets/envq-demo.gif" alt="envq terminal demo" width="920">
 
-## Compatibility Contract
+The usual loop is inspect, check, preview, and then write:
 
-Implementations must match the golden fixtures byte-for-byte for rewritten files
-and text-for-text for stdout, stderr, and exit codes. Platform-dependent
-fixtures declare `platform` as `posix` or `windows`; all other fixtures declare
-`platform` as `all`.
+```bash
+envq list .env
+envq has FEATURE_FLAG .env
+cat token.txt | envq set API_TOKEN - .env --diff
+cat token.txt | envq set API_TOKEN - .env
+envq clear FEATURE_FLAG .env
+envq list .env --json
+```
 
-The golden fixture manifests in `tests/fixtures/golden/` are part of this
-contract. Behavior that is not documented here or captured by those fixtures
-should be treated as accidental until it is promoted into both places.
+Use `--diff` before writes when you want a byte-level preview, `--stdout` when
+you want the rendered file on stdout, and `--check` when CI should fail if a
+file would change.
 
-## Install
+## Usage
+
+```bash
+envq [--version] [--quiet]
+envq get KEY PATH
+envq set KEY VALUE PATH [--stdout|--diff] [--check]
+envq set KEY - PATH [--stdout|--diff] [--check]
+envq clear KEY PATH [--stdout|--diff] [--check]
+envq unset KEY PATH [--stdout|--diff] [--check]
+envq remove KEY PATH [--stdout|--diff] [--check]
+envq has KEY PATH
+envq list PATH [--json|--yaml|--names] [--unique]
+envq completion {bash,zsh,fish,powershell,pwsh}
+envq help [COMMAND]
+```
+
+Examples:
+
+```bash
+printf 'A=1\nB=two\n' > /tmp/envq-demo.env
+
+envq get A /tmp/envq-demo.env
+envq list /tmp/envq-demo.env
+envq list /tmp/envq-demo.env --json
+
+envq set A 2 /tmp/envq-demo.env --diff
+envq set A 2 /tmp/envq-demo.env --stdout
+envq set A 2 /tmp/envq-demo.env
+
+printf 'line1\nline2\n' | envq set SECRET - /tmp/envq-demo.env --stdout
+```
+
+### Commands
+
+- `get KEY PATH` prints the first matching value exactly, without adding a
+  newline.
+- `has KEY PATH` prints nothing and reports presence through the exit code.
+- `list PATH` prints bindings in file order as `KEY<TAB>VALUE`.
+- `list --json`, `list --yaml`, and `list --names` change list output format.
+- `list --unique` keeps the first binding for each key.
+- `set KEY VALUE PATH` updates the first matching binding, appends a new
+  binding, or creates `PATH` when the file is missing and the parent directory
+  exists.
+- `set KEY - PATH` reads the value from stdin exactly, including trailing
+  newlines.
+- `clear KEY PATH` is equivalent to `set KEY "" PATH`.
+- `unset KEY PATH` removes all matching bindings and exits `2` if the key is
+  absent.
+- `remove KEY PATH` is an alias for `unset`.
+
+Mutating commands write by default. Trailing `--stdout` prints the rendered file
+without writing, trailing `--diff` prints a unified diff without writing, and
+trailing `--check` never writes and exits with code `4` when the file would
+change. `--check` may be combined with `--stdout` or `--diff`.
+
+Output options are parsed only after normal operands, so this stores `--stdout`
+as the value:
+
+```bash
+envq set KEY --stdout .env
+```
+
+### Exit Codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | Success |
+| 1 | General error |
+| 2 | Key not found |
+| 3 | Validation error |
+| 4 | Would change |
+
+`--quiet` suppresses non-success diagnostics on stderr while preserving exit
+codes. Usage errors print usage to stderr and exit `1`.
+
+`completion` supports bash, zsh, fish, PowerShell, and pwsh. `cmd.exe`
+completions are not supported.
+
+## Installation
 
 Install from crates.io:
 
@@ -59,6 +139,8 @@ GNU/glibc `.deb` and `.rpm` packages for x86_64 and ARM64. Archives include
 the `envq` binary, `README.md`, `LICENSE`, and `THIRD-PARTY-LICENSES.md`.
 Verify downloads with the release `SHA256SUMS.txt` file or the per-artifact
 `.sha256` sidecar.
+
+### Shell Completions
 
 Install shell completions by writing the generated script to your shell's
 completion directory.
@@ -99,106 +181,28 @@ New-Item -ItemType Directory -Force (Split-Path $PROFILE) | Out-Null
 envq completion powershell | Add-Content $PROFILE
 ```
 
-## Build
+## Compatibility Contract
 
-```bash
-cargo build --locked
-cargo build --release --locked
-```
+The Rust implementation targets Rust 1.88. The CLI behavior documented in this
+README is the stable compatibility contract.
 
-Run the development binary directly:
+Implementations must match the golden fixtures byte-for-byte for rewritten files
+and text-for-text for stdout, stderr, and exit codes. Platform-dependent
+fixtures declare `platform` as `posix` or `windows`; all other fixtures declare
+`platform` as `all`.
 
-```bash
-cargo run -- --help
-cargo run -- --version
-```
+The golden fixture manifests in `tests/fixtures/golden/` are part of this
+contract. Behavior that is not documented here or captured by those fixtures
+should be treated as accidental until it is promoted into both places.
 
-Or build once and run the binary:
+### Library API
 
-```bash
-cargo build --locked
-./target/debug/envq --help
-```
+The CLI behavior documented in this README is the stable compatibility contract.
+The Rust library modules are public for integration and testing during the `0.x`
+series, but their exact API shape is still experimental and may change between
+minor releases.
 
-## Usage
-
-```bash
-envq [--version] [--quiet]
-envq get KEY PATH
-envq set KEY VALUE PATH [--stdout|--diff] [--check]
-envq set KEY - PATH [--stdout|--diff] [--check]
-envq clear KEY PATH [--stdout|--diff] [--check]
-envq unset KEY PATH [--stdout|--diff] [--check]
-envq remove KEY PATH [--stdout|--diff] [--check]
-envq has KEY PATH
-envq list PATH [--json|--yaml|--names] [--unique]
-envq completion {bash,zsh,fish,powershell,pwsh}
-envq help [COMMAND]
-```
-
-Examples:
-
-```bash
-printf 'A=1\nB=two\n' > /tmp/envq-demo.env
-
-envq get A /tmp/envq-demo.env
-envq list /tmp/envq-demo.env
-envq list /tmp/envq-demo.env --json
-
-envq set A 2 /tmp/envq-demo.env --diff
-envq set A 2 /tmp/envq-demo.env --stdout
-envq set A 2 /tmp/envq-demo.env
-
-printf 'line1\nline2\n' | envq set SECRET - /tmp/envq-demo.env --stdout
-```
-
-## Commands
-
-- `get KEY PATH` prints the first matching value exactly, without adding a
-  newline.
-- `has KEY PATH` prints nothing and reports presence through the exit code.
-- `list PATH` prints bindings in file order as `KEY<TAB>VALUE`.
-- `list --json`, `list --yaml`, and `list --names` change list output format.
-- `list --unique` keeps the first binding for each key.
-- `set KEY VALUE PATH` updates the first matching binding, appends a new
-  binding, or creates `PATH` when the file is missing and the parent directory
-  exists.
-- `set KEY - PATH` reads the value from stdin exactly, including trailing
-  newlines.
-- `clear KEY PATH` is equivalent to `set KEY "" PATH`.
-- `unset KEY PATH` removes all matching bindings and exits `2` if the key is
-  absent.
-- `remove KEY PATH` is an alias for `unset`.
-
-Mutating commands write by default. Trailing `--stdout` prints the rendered file
-without writing, trailing `--diff` prints a unified diff without writing, and
-trailing `--check` never writes and exits with code `4` when the file would
-change. `--check` may be combined with `--stdout` or `--diff`.
-
-Output options are parsed only after normal operands, so this stores `--stdout`
-as the value:
-
-```bash
-envq set KEY --stdout .env
-```
-
-## Exit Codes
-
-| Code | Meaning |
-| --- | --- |
-| 0 | Success |
-| 1 | General error |
-| 2 | Key not found |
-| 3 | Validation error |
-| 4 | Would change |
-
-`--quiet` suppresses non-success diagnostics on stderr while preserving exit
-codes. Usage errors print usage to stderr and exit `1`.
-
-`completion` supports bash, zsh, fish, PowerShell, and pwsh. `cmd.exe`
-completions are not supported.
-
-## Syntax
+### Syntax
 
 Supported bindings:
 
@@ -226,7 +230,7 @@ Unsupported syntax is preserved as invalid text, not interpreted. This includes
 shell execution, variable expansion, multiline physical values, `KEY: value`,
 unassigned names, quoted keys, and broad dotenv compatibility extensions.
 
-## Quoting
+### Quoting
 
 Unquoted values are read literally. Single-quoted values strip the surrounding
 quotes and otherwise read contents literally. Double-quoted values decode `\\`,
@@ -237,7 +241,7 @@ When writing, safe values remain unquoted. Values containing whitespace, `#`,
 quotes, backslash, or control characters are double-quoted. Double-quoted output
 escapes backslash, quote, newline, carriage return, and tab.
 
-## Duplicates, Newlines, And Rewrites
+### Duplicates, Newlines, And Rewrites
 
 Duplicate keys are allowed. `get` returns the first match, `has` succeeds if any
 match exists, `list` includes duplicates in file order, `set` and `clear` update
@@ -260,6 +264,27 @@ platform supports POSIX mode bits. envq does not take file locks; concurrent
 writers race with last-replace-wins filesystem semantics.
 
 ## Development
+
+Build the development binary:
+
+```bash
+cargo build --locked
+cargo build --release --locked
+```
+
+Run it directly:
+
+```bash
+cargo run -- --help
+cargo run -- --version
+```
+
+Or build once and run the binary:
+
+```bash
+cargo build --locked
+./target/debug/envq --help
+```
 
 Run the main local checks:
 
