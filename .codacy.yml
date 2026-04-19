@@ -3,6 +3,7 @@
 # Coverage exclusions must be handled in the coverage tool/report itself.
 exclude_paths:
   - "fuzz/**"
+  - "scripts/**"
   - "src/**/tests.rs"
   - "src/**/tests/**"
   - "tests/**"
