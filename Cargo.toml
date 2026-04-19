@@ -11,6 +11,7 @@ homepage = "https://techouse.github.io/envq/"
 description = "Byte-preserving .env query and editing tool"
 keywords = ["env", "dotenv", "cli", "configuration", "parser"]
 exclude = [
+    ".codacy.yml",
     ".github/",
     ".gitattributes",
     ".gitignore",
