@@ -23,7 +23,7 @@ write to the process environment.
 
 ## Getting Started
 
-<img src="docs/assets/envq-demo.gif" alt="envq terminal demo" width="920">
+<img src="https://raw.githubusercontent.com/techouse/envq/refs/heads/main/docs/assets/envq-demo.gif" alt="envq terminal demo" width="920">
 
 The usual loop is inspect, check, preview, and then write:
 
