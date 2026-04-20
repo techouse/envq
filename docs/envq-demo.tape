@@ -68,10 +68,10 @@ Type "}"
 Enter
 Type "clear; PROMPT_COMMAND=demo_comment_prompt"
 Enter
-Sleep 500ms
-Set TypingSpeed 55ms
+Sleep 1s
+Set TypingSpeed 90ms
 Show
-Sleep 800ms
+Sleep 1600ms
 
 Type "cat .env"
 Enter
