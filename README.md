@@ -120,6 +120,12 @@ completions are not supported.
 
 ## Installation
 
+Install the latest GitHub release on Linux or macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/techouse/envq/refs/heads/main/install.sh | sh
+```
+
 Install from crates.io:
 
 ```bash

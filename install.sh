@@ -1,0 +1,245 @@
+#!/usr/bin/env sh
+
+# envq installer - https://github.com/techouse/envq
+# Usage: curl -fsSL https://raw.githubusercontent.com/techouse/envq/refs/heads/main/install.sh | sh
+
+set -e
+
+REPO="techouse/envq"
+BINARY_NAME="envq"
+INSTALL_DIR="${ENVQ_INSTALL_DIR:-$HOME/.local/bin}"
+TEMP_DIR=""
+
+if [ -t 1 ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    NC=''
+fi
+
+info() {
+    printf "%b[INFO]%b %s\n" "$GREEN" "$NC" "$1"
+}
+
+warn() {
+    printf "%b[WARN]%b %s\n" "$YELLOW" "$NC" "$1" >&2
+}
+
+error() {
+    printf "%b[ERROR]%b %s\n" "$RED" "$NC" "$1" >&2
+    exit 1
+}
+
+cleanup() {
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+}
+
+need_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        error "Required command not found: $1"
+    fi
+}
+
+detect_os() {
+    case "$(uname -s)" in
+        Linux*) OS="linux" ;;
+        Darwin*) OS="darwin" ;;
+        *) error "Unsupported operating system: $(uname -s)" ;;
+    esac
+}
+
+detect_arch() {
+    case "$(uname -m)" in
+        x86_64 | amd64) ARCH="x86_64" ;;
+        arm64 | aarch64) ARCH="aarch64" ;;
+        *) error "Unsupported architecture: $(uname -m)" ;;
+    esac
+}
+
+detect_linux_libc() {
+    LINUX_LIBC="${ENVQ_LINUX_LIBC:-}"
+
+    if [ -n "$LINUX_LIBC" ]; then
+        case "$LINUX_LIBC" in
+            gnu | musl) return ;;
+            *) error "ENVQ_LINUX_LIBC must be 'gnu' or 'musl'" ;;
+        esac
+    fi
+
+    LINUX_LIBC="gnu"
+    if command -v ldd >/dev/null 2>&1; then
+        if LDD_OUTPUT=$(ldd --version 2>&1); then
+            :
+        else
+            LDD_OUTPUT=$(ldd 2>&1 || true)
+        fi
+
+        if printf "%s" "$LDD_OUTPUT" | grep -qi "musl"; then
+            LINUX_LIBC="musl"
+        fi
+    fi
+}
+
+get_version() {
+    if [ -n "${ENVQ_VERSION:-}" ]; then
+        case "$ENVQ_VERSION" in
+            v*)
+                VERSION_TAG="$ENVQ_VERSION"
+                ASSET_VERSION="${ENVQ_VERSION#v}"
+                ;;
+            *)
+                VERSION_TAG="v$ENVQ_VERSION"
+                ASSET_VERSION="$ENVQ_VERSION"
+                ;;
+        esac
+    else
+        VERSION_TAG=$(
+            curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" |
+                sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+                head -n 1
+        )
+        ASSET_VERSION="${VERSION_TAG#v}"
+    fi
+
+    if [ -z "$VERSION_TAG" ] || [ -z "$ASSET_VERSION" ]; then
+        error "Failed to determine latest release version"
+    fi
+}
+
+get_artifact() {
+    case "$OS" in
+        linux)
+            detect_linux_libc
+            TARGET="${ARCH}-unknown-linux-${LINUX_LIBC}"
+            ARCHIVE_NAME="${BINARY_NAME}-${ASSET_VERSION}-${TARGET}.tar.gz"
+            PACKAGE_NAME="${ARCHIVE_NAME%.tar.gz}"
+            ;;
+        darwin)
+            TARGET="universal-apple-darwin"
+            ARCHIVE_NAME="${BINARY_NAME}-${ASSET_VERSION}-${TARGET}.zip"
+            PACKAGE_NAME="${ARCHIVE_NAME%.zip}"
+            ;;
+    esac
+
+    DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION_TAG}/${ARCHIVE_NAME}"
+    ARCHIVE_PATH="${TEMP_DIR}/${ARCHIVE_NAME}"
+    CHECKSUM_NAME="${ARCHIVE_NAME}.sha256"
+    CHECKSUM_PATH="${TEMP_DIR}/${CHECKSUM_NAME}"
+    BINARY_PATH="${TEMP_DIR}/${PACKAGE_NAME}/${BINARY_NAME}"
+    INSTALL_PATH="${INSTALL_DIR}/${BINARY_NAME}"
+}
+
+download_artifact() {
+    info "Downloading from: $DOWNLOAD_URL"
+    if ! curl -fsSL "$DOWNLOAD_URL" -o "$ARCHIVE_PATH"; then
+        error "Failed to download release artifact"
+    fi
+
+    info "Downloading checksum"
+    if ! curl -fsSL "${DOWNLOAD_URL}.sha256" -o "$CHECKSUM_PATH"; then
+        error "Failed to download checksum"
+    fi
+}
+
+verify_checksum() {
+    info "Verifying checksum"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        if ! (cd "$TEMP_DIR" && sha256sum -c "$CHECKSUM_NAME" >/dev/null); then
+            error "Checksum verification failed"
+        fi
+    elif command -v shasum >/dev/null 2>&1; then
+        if ! (cd "$TEMP_DIR" && shasum -a 256 -c "$CHECKSUM_NAME" >/dev/null); then
+            error "Checksum verification failed"
+        fi
+    else
+        warn "No SHA-256 verifier found; skipping checksum verification"
+    fi
+}
+
+extract_artifact() {
+    info "Extracting"
+
+    case "$ARCHIVE_NAME" in
+        *.tar.gz)
+            need_cmd tar
+            tar -xzf "$ARCHIVE_PATH" -C "$TEMP_DIR"
+            ;;
+        *.zip)
+            need_cmd unzip
+            unzip -q "$ARCHIVE_PATH" -d "$TEMP_DIR"
+            ;;
+        *)
+            error "Unsupported archive format: $ARCHIVE_NAME"
+            ;;
+    esac
+
+    if [ ! -f "$BINARY_PATH" ]; then
+        error "Archive did not contain expected binary: ${PACKAGE_NAME}/${BINARY_NAME}"
+    fi
+}
+
+install_binary() {
+    mkdir -p "$INSTALL_DIR"
+    cp "$BINARY_PATH" "$INSTALL_PATH"
+    chmod 755 "$INSTALL_PATH"
+    info "Successfully installed ${BINARY_NAME} to ${INSTALL_PATH}"
+}
+
+verify_installation() {
+    if ! INSTALLED_VERSION=$("$INSTALL_PATH" --version 2>/dev/null); then
+        error "Installed binary failed to run: $INSTALL_PATH"
+    fi
+
+    info "Verification: $INSTALLED_VERSION"
+
+    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
+        PATH_BINARY=$(command -v "$BINARY_NAME")
+        if [ "$PATH_BINARY" != "$INSTALL_PATH" ]; then
+            warn "${BINARY_NAME} on PATH resolves to ${PATH_BINARY}"
+            warn "Add ${INSTALL_DIR} earlier in PATH to use this installation"
+        fi
+    else
+        warn "Binary installed but not in PATH. Add this to your shell profile:"
+        warn "  export PATH=\"${INSTALL_DIR}:\$PATH\""
+    fi
+}
+
+main() {
+    trap cleanup EXIT INT TERM
+
+    need_cmd curl
+    need_cmd grep
+    need_cmd head
+    need_cmd mktemp
+    need_cmd sed
+    detect_os
+    detect_arch
+    get_version
+
+    TEMP_DIR=$(mktemp -d)
+    get_artifact
+
+    info "Installing $BINARY_NAME"
+    info "Detected: $OS $ARCH"
+    info "Target: $TARGET"
+    info "Version: $VERSION_TAG"
+
+    download_artifact
+    verify_checksum
+    extract_artifact
+    install_binary
+    verify_installation
+
+    echo ""
+    info "Installation complete. Run '$BINARY_NAME --help' to get started."
+}
+
+main
