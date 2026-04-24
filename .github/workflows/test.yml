@@ -301,6 +301,25 @@ jobs:
           Assert-CompletionContains "envq set --" "--stdout"
           Assert-CompletionContains "envq set --" "--diff"
 
+  installer-smoke:
+    name: Installer smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Lint and syntax check installer scripts
+        run: |
+          set -euo pipefail
+          shellcheck install.sh scripts/fuzz_soak.sh scripts/installer_smoke.sh
+          sh -n install.sh
+          bash -n install.sh
+          bash -n scripts/fuzz_soak.sh
+          bash -n scripts/installer_smoke.sh
+
+      - name: Installer smoke tests
+        run: bash scripts/installer_smoke.sh
+
   ci-required:
     name: CI Required
     if: ${{ always() }}
@@ -311,6 +330,7 @@ jobs:
       - package
       - completion-smoke
       - powershell-completion-smoke
+      - installer-smoke
     runs-on: ubuntu-latest
     env:
       STABLE_RESULT: ${{ needs.stable.result }}
@@ -319,6 +339,7 @@ jobs:
       PACKAGE_RESULT: ${{ needs.package.result }}
       COMPLETION_SMOKE_RESULT: ${{ needs.completion-smoke.result }}
       POWERSHELL_COMPLETION_SMOKE_RESULT: ${{ needs.powershell-completion-smoke.result }}
+      INSTALLER_SMOKE_RESULT: ${{ needs.installer-smoke.result }}
 
     steps:
       - name: Verify required job results
@@ -332,6 +353,7 @@ jobs:
             "package:${PACKAGE_RESULT}"
             "completion-smoke:${COMPLETION_SMOKE_RESULT}"
             "powershell-completion-smoke:${POWERSHELL_COMPLETION_SMOKE_RESULT}"
+            "installer-smoke:${INSTALLER_SMOKE_RESULT}"
           )
 
           failed=0
