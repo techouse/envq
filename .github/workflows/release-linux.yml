@@ -84,6 +84,7 @@ jobs:
           package="envq-${{ inputs.version }}-${{ matrix.target_triple }}"
           mkdir -p "dist/${package}"
           cp target/release/envq "dist/${package}/envq"
+          cp -R target/completions "dist/${package}/completions"
           cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/${package}/"
           tar -czf "dist/${package}.tar.gz" -C dist "${package}"
 
@@ -93,6 +94,7 @@ jobs:
           package="envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}"
           mkdir -p "dist/${package}"
           cp "target/${{ matrix.musl_target_triple }}/release/envq" "dist/${package}/envq"
+          cp -R target/completions "dist/${package}/completions"
           cp README.md LICENSE THIRD-PARTY-LICENSES.md "dist/${package}/"
           tar -czf "dist/${package}.tar.gz" -C dist "${package}"
 
@@ -113,6 +115,12 @@ jobs:
           set -euo pipefail
           test -f "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz"
           test -f "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.bash"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/_envq"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.fish"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.bash"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/_envq"
+          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.fish"
           test "$(find dist -maxdepth 1 -name '*.deb' | wc -l | tr -d ' ')" = "1"
           test "$(find dist -maxdepth 1 -name '*.rpm' | wc -l | tr -d ' ')" = "1"
           find dist -maxdepth 1 -type f -print
