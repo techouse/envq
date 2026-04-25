@@ -113,14 +113,21 @@ jobs:
       - name: Verify package artifacts
         run: |
           set -euo pipefail
-          test -f "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz"
-          test -f "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.bash"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/_envq"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.fish"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.bash"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/_envq"
-          tar -tzf "dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz" | grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.fish"
+          gnu_archive="dist/envq-${{ inputs.version }}-${{ matrix.target_triple }}.tar.gz"
+          musl_archive="dist/envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}.tar.gz"
+          test -f "${gnu_archive}"
+          test -f "${musl_archive}"
+          gnu_contents="$(mktemp)"
+          musl_contents="$(mktemp)"
+          trap 'rm -f "${gnu_contents}" "${musl_contents}"' EXIT
+          tar -tzf "${gnu_archive}" > "${gnu_contents}"
+          tar -tzf "${musl_archive}" > "${musl_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.bash" "${gnu_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/_envq" "${gnu_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.target_triple }}/completions/envq.fish" "${gnu_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.bash" "${musl_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/_envq" "${musl_contents}"
+          grep -Fqx "envq-${{ inputs.version }}-${{ matrix.musl_target_triple }}/completions/envq.fish" "${musl_contents}"
           test "$(find dist -maxdepth 1 -name '*.deb' | wc -l | tr -d ' ')" = "1"
           test "$(find dist -maxdepth 1 -name '*.rpm' | wc -l | tr -d ' ')" = "1"
           find dist -maxdepth 1 -type f -print
