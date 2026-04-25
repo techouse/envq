@@ -2,6 +2,12 @@
 
 All notable changes to envq are documented here.
 
+## 0.1.3 - 2026-04-25
+
+- Bundled bash, zsh, and fish completions in Linux GNU/glibc and musl `.tar.gz` release archives.
+- Installed bash, zsh, and fish completions by default from `install.sh`, with `ENVQ_INSTALL_COMPLETIONS=0` available to skip completion installation.
+- Added installer smoke coverage for packaged completions, generated completion fallback, opt-out behavior, and non-fatal completion install warnings.
+
 ## 0.1.2 - 2026-04-18
 
 - Reached full source coverage for the shipped crate in the maintained coverage target.
