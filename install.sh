@@ -193,6 +193,60 @@ install_binary() {
     info "Successfully installed ${BINARY_NAME} to ${INSTALL_PATH}"
 }
 
+install_completion() {
+    COMPLETION_SHELL="$1"
+    COMPLETION_SOURCE_NAME="$2"
+    COMPLETION_DIR="$3"
+    COMPLETION_PATH="$4"
+    COMPLETION_SOURCE_PATH="${TEMP_DIR}/${PACKAGE_NAME}/completions/${COMPLETION_SOURCE_NAME}"
+
+    if ! mkdir -p "$COMPLETION_DIR"; then
+        warn "Failed to create completion directory: ${COMPLETION_DIR}"
+        return
+    fi
+
+    if [ -f "$COMPLETION_SOURCE_PATH" ]; then
+        if cp "$COMPLETION_SOURCE_PATH" "$COMPLETION_PATH"; then
+            info "Installed ${COMPLETION_SHELL} completions to ${COMPLETION_PATH}"
+        else
+            warn "Failed to install ${COMPLETION_SHELL} completions to ${COMPLETION_PATH}"
+        fi
+        return
+    fi
+
+    if "$INSTALL_PATH" completion "$COMPLETION_SHELL" >"$COMPLETION_PATH"; then
+        info "Generated ${COMPLETION_SHELL} completions at ${COMPLETION_PATH}"
+    else
+        rm -f "$COMPLETION_PATH"
+        warn "Failed to generate ${COMPLETION_SHELL} completions"
+    fi
+}
+
+install_completions() {
+    if [ "${ENVQ_INSTALL_COMPLETIONS:-1}" = "0" ]; then
+        info "Skipping shell completions"
+        return
+    fi
+
+    install_completion \
+        bash \
+        envq.bash \
+        "$HOME/.local/share/bash-completion/completions" \
+        "$HOME/.local/share/bash-completion/completions/envq"
+    install_completion \
+        zsh \
+        _envq \
+        "$HOME/.zfunc" \
+        "$HOME/.zfunc/_envq"
+    install_completion \
+        fish \
+        envq.fish \
+        "$HOME/.config/fish/completions" \
+        "$HOME/.config/fish/completions/envq.fish"
+
+    info "For zsh completions, ensure ~/.zfunc is in fpath before running compinit."
+}
+
 verify_installation() {
     if ! INSTALLED_VERSION=$("$INSTALL_PATH" --version 2>/dev/null); then
         error "Installed binary failed to run: $INSTALL_PATH"
@@ -236,6 +290,7 @@ main() {
     verify_checksum
     extract_artifact
     install_binary
+    install_completions
     verify_installation
 
     echo ""

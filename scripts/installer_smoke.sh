@@ -107,6 +107,7 @@ write_checksum() {
 make_package() {
     local package="$1"
     local archive="$2"
+    local include_completions="${3:-1}"
     local package_dir="${DIST}/${package}"
 
     rm -rf "$package_dir"
@@ -116,13 +117,34 @@ make_package() {
 #!/usr/bin/env sh
 set -eu
 
-if [ "${1:-}" = "--version" ]; then
-    printf 'envq 9.9.9\n'
-else
-    printf 'fake envq\n'
-fi
+case "${1:-}" in
+    --version)
+        printf 'envq 9.9.9\n'
+        ;;
+    completion)
+        case "${2:-}" in
+            bash | zsh | fish)
+                printf 'generated %s completion\n' "$2"
+                ;;
+            *)
+                printf 'unsupported shell: %s\n' "${2:-}" >&2
+                exit 2
+                ;;
+        esac
+        ;;
+    *)
+        printf 'fake envq\n'
+        ;;
+esac
 FAKE_ENVQ
     chmod 755 "${package_dir}/envq"
+
+    if [[ "$include_completions" == "1" ]]; then
+        mkdir -p "${package_dir}/completions"
+        printf 'packaged bash completion\n' >"${package_dir}/completions/envq.bash"
+        printf 'packaged zsh completion\n' >"${package_dir}/completions/_envq"
+        printf 'packaged fish completion\n' >"${package_dir}/completions/envq.fish"
+    fi
 
     printf 'readme\n' >"${package_dir}/README.md"
     printf 'license\n' >"${package_dir}/LICENSE"
@@ -145,6 +167,36 @@ FAKE_ENVQ
     write_checksum "$archive"
 }
 
+assert_completion_files() {
+    local home_dir="$1"
+    local expected_source="$2"
+    local bash_completion="${home_dir}/.local/share/bash-completion/completions/envq"
+    local zsh_completion="${home_dir}/.zfunc/_envq"
+    local fish_completion="${home_dir}/.config/fish/completions/envq.fish"
+
+    case "$expected_source" in
+        packaged)
+            grep -Fqx 'packaged bash completion' "$bash_completion"
+            grep -Fqx 'packaged zsh completion' "$zsh_completion"
+            grep -Fqx 'packaged fish completion' "$fish_completion"
+            ;;
+        generated)
+            grep -Fqx 'generated bash completion' "$bash_completion"
+            grep -Fqx 'generated zsh completion' "$zsh_completion"
+            grep -Fqx 'generated fish completion' "$fish_completion"
+            ;;
+        none)
+            [[ ! -e "$bash_completion" ]]
+            [[ ! -e "$zsh_completion" ]]
+            [[ ! -e "$fish_completion" ]]
+            ;;
+        *)
+            printf 'unsupported expected completion source: %s\n' "$expected_source" >&2
+            exit 2
+            ;;
+    esac
+}
+
 run_install() {
     local name="$1"
     local os="$2"
@@ -152,41 +204,52 @@ run_install() {
     local libc="$4"
     local expected_target="$5"
     local forced_linux_libc="${6:-}"
+    local expected_completions="${7:-packaged}"
+    local install_completions="${8:-}"
+    local home_kind="${9:-dir}"
     local install_dir="${SMOKE_ROOT}/install/${name}"
+    local home_dir="${SMOKE_ROOT}/home/${name}"
     local output="${SMOKE_ROOT}/${name}.out"
 
-    rm -rf "$install_dir"
+    rm -rf "$install_dir" "$home_dir"
     mkdir -p "$install_dir"
+    case "$home_kind" in
+        dir)
+            mkdir -p "$home_dir"
+            ;;
+        file)
+            mkdir -p "$(dirname "$home_dir")"
+            printf 'not a directory\n' >"$home_dir"
+            ;;
+        *)
+            printf 'unsupported home kind: %s\n' "$home_kind" >&2
+            exit 2
+            ;;
+    esac
 
-    if [[ -n "$forced_linux_libc" ]]; then
-        if ! env \
-            PATH="${FAKEBIN}:${PATH}" \
-            ENVQ_FAKE_DIST="$DIST" \
-            ENVQ_FAKE_OS="$os" \
-            ENVQ_FAKE_ARCH="$arch" \
-            ENVQ_FAKE_LIBC="$libc" \
-            ENVQ_LINUX_LIBC="$forced_linux_libc" \
-            ENVQ_INSTALL_DIR="$install_dir" \
-            sh "$INSTALLER" >"$output" 2>&1; then
-            cat "$output" >&2
-            exit 1
-        fi
-    else
-        if ! env \
-            PATH="${FAKEBIN}:${PATH}" \
-            ENVQ_FAKE_DIST="$DIST" \
-            ENVQ_FAKE_OS="$os" \
-            ENVQ_FAKE_ARCH="$arch" \
-            ENVQ_FAKE_LIBC="$libc" \
-            ENVQ_INSTALL_DIR="$install_dir" \
-            sh "$INSTALLER" >"$output" 2>&1; then
-            cat "$output" >&2
-            exit 1
-        fi
+    if ! env \
+        PATH="${FAKEBIN}:${PATH}" \
+        HOME="$home_dir" \
+        ENVQ_FAKE_DIST="$DIST" \
+        ENVQ_FAKE_OS="$os" \
+        ENVQ_FAKE_ARCH="$arch" \
+        ENVQ_FAKE_LIBC="$libc" \
+        ENVQ_LINUX_LIBC="$forced_linux_libc" \
+        ENVQ_INSTALL_COMPLETIONS="$install_completions" \
+        ENVQ_INSTALL_DIR="$install_dir" \
+        sh "$INSTALLER" >"$output" 2>&1; then
+        cat "$output" >&2
+        exit 1
     fi
 
     "${install_dir}/envq" --version | grep -qx 'envq 9.9.9'
     grep -Fqx "[INFO] Target: ${expected_target}" "$output"
+    if [[ "$expected_completions" == "write-failure" ]]; then
+        grep -Fq "[WARN] Failed to create completion directory:" "$output"
+        assert_completion_files "$home_dir" "none"
+    else
+        assert_completion_files "$home_dir" "$expected_completions"
+    fi
     printf 'ok: %s\n' "$name"
 }
 
@@ -196,10 +259,15 @@ expect_install_failure() {
     local arch="$3"
     local libc="$4"
     local expected_error="$5"
+    local home_dir="${SMOKE_ROOT}/home/${name}"
     local output="${SMOKE_ROOT}/${name}.out"
+
+    rm -rf "$home_dir"
+    mkdir -p "$home_dir"
 
     if env \
         PATH="${FAKEBIN}:${PATH}" \
+        HOME="$home_dir" \
         ENVQ_FAKE_DIST="$DIST" \
         ENVQ_FAKE_OS="$os" \
         ENVQ_FAKE_ARCH="$arch" \
@@ -223,7 +291,8 @@ main() {
         "envq-9.9.9-x86_64-unknown-linux-gnu.tar.gz"
     make_package \
         "envq-9.9.9-x86_64-unknown-linux-musl" \
-        "envq-9.9.9-x86_64-unknown-linux-musl.tar.gz"
+        "envq-9.9.9-x86_64-unknown-linux-musl.tar.gz" \
+        "0"
     make_package \
         "envq-9.9.9-aarch64-unknown-linux-musl" \
         "envq-9.9.9-aarch64-unknown-linux-musl.tar.gz"
@@ -236,9 +305,13 @@ main() {
     run_install "linux-musl-aarch64" \
         "Linux" "aarch64" "musl" "aarch64-unknown-linux-musl"
     run_install "linux-musl-override" \
-        "Linux" "x86_64" "gnu" "x86_64-unknown-linux-musl" "musl"
+        "Linux" "x86_64" "gnu" "x86_64-unknown-linux-musl" "musl" "generated"
     run_install "macos-universal" \
         "Darwin" "arm64" "gnu" "universal-apple-darwin"
+    run_install "linux-no-completions" \
+        "Linux" "x86_64" "gnu" "x86_64-unknown-linux-gnu" "" "none" "0"
+    run_install "linux-completion-write-failure" \
+        "Linux" "x86_64" "gnu" "x86_64-unknown-linux-gnu" "" "write-failure" "" "file"
 
     printf '%s  %s\n' \
         "$ZERO_SHA256" \
