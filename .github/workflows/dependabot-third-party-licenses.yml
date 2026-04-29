@@ -20,6 +20,7 @@ jobs:
   update-third-party-licenses:
     name: Update third-party license notices
     if: >-
+      github.actor == 'dependabot[bot]' &&
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       startsWith(github.event.pull_request.head.ref, 'dependabot/cargo/')
