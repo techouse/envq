@@ -1,0 +1,4 @@
+interface:
+  display_name: "envq"
+  short_description: "Plan safe byte-preserving .env edits"
+  default_prompt: "Use $envq to inspect or edit a .env file safely."

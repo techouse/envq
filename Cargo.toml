@@ -27,6 +27,7 @@ exclude = [
     "Makefile",
     "RELEASING.md",
     "scripts/**",
+    "skills/**",
     "src/**/tests.rs",
     "src/**/tests/**",
     "SECURITY.md",

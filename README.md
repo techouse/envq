@@ -17,9 +17,9 @@ comments, spacing, duplicate keys, invalid UTF-8, and newline styles. It is not
 a dotenv runtime loader, does not execute shell syntax, and does not read from or
 write to the process environment.
 
-[Getting Started](#getting-started) - [Usage](#usage) -
-[Installation](#installation) - [Compatibility Contract](#compatibility-contract) -
-[Development](#development)
+[Getting Started](#getting-started) - [Agent skill](#agent-skill) -
+[Usage](#usage) - [Installation](#installation) -
+[Compatibility Contract](#compatibility-contract) - [Development](#development)
 
 ## Getting Started
 
@@ -39,6 +39,14 @@ envq list .env --json
 Use `--diff` before writes when you want a byte-level preview, `--stdout` when
 you want the rendered file on stdout, and `--check` when CI should fail if a
 file would change.
+
+## Agent skill
+
+This repo includes an optional agent skill at
+[`skills/envq/`](https://github.com/techouse/envq/tree/main/skills/envq) for
+users who want Codex or another compatible agent to help prepare safe `envq`
+commands. The skill is user-facing: it focuses on `.env` inspection and editing
+recipes, byte-preserving defaults, dry-run workflows, and duplicate-key caveats.
 
 ## Usage
 
