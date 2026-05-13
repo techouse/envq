@@ -16,7 +16,7 @@ Do not edit it by hand; run `make third-party-licenses`.
 | cfg-if | 1.0.4 | `MIT OR Apache-2.0` | https://github.com/rust-lang/cfg-if |
 | clap | 4.6.1 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_builder | 4.6.0 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
-| clap_complete | 4.6.3 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
+| clap_complete | 4.6.5 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_lex | 1.1.0 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | colorchoice | 1.0.5 | `MIT OR Apache-2.0` | https://github.com/rust-cli/anstyle.git |
 | errno | 0.3.14 | `MIT OR Apache-2.0` | https://github.com/lambda-fairy/rust-errno |
@@ -267,7 +267,7 @@ Used by:
 - anstyle 1.0.14 (https://github.com/rust-cli/anstyle.git)
 - clap 4.6.1 (https://github.com/clap-rs/clap)
 - clap_builder 4.6.0 (https://github.com/clap-rs/clap)
-- clap_complete 4.6.3 (https://github.com/clap-rs/clap)
+- clap_complete 4.6.5 (https://github.com/clap-rs/clap)
 - clap_lex 1.1.0 (https://github.com/clap-rs/clap)
 - colorchoice 1.0.5 (https://github.com/rust-cli/anstyle.git)
 - is_terminal_polyfill 1.70.2 (https://github.com/polyfill-rs/is_terminal_polyfill)
