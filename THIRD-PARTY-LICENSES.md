@@ -13,7 +13,7 @@ Do not edit it by hand; run `make third-party-licenses`.
 | anstyle-query | 1.1.5 | `MIT OR Apache-2.0` | https://github.com/rust-cli/anstyle.git |
 | anstyle-wincon | 3.0.11 | `MIT OR Apache-2.0` | https://github.com/rust-cli/anstyle.git |
 | bitflags | 2.13.2 | `MIT OR Apache-2.0` | https://github.com/bitflags/bitflags |
-| cfg-if | 1.0.4 | `MIT OR Apache-2.0` | https://github.com/rust-lang/cfg-if |
+| cfg-if | 1.0.5 | `MIT OR Apache-2.0` | https://github.com/rust-lang/cfg-if |
 | clap | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_builder | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_complete | 4.6.11 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
@@ -31,7 +31,7 @@ Do not edit it by hand; run `make third-party-licenses`.
 | memchr | 2.8.3 | `Unlicense OR MIT` | https://github.com/BurntSushi/memchr |
 | once_cell | 1.21.4 | `MIT OR Apache-2.0` | https://github.com/matklad/once_cell |
 | once_cell_polyfill | 1.70.2 | `MIT OR Apache-2.0` | https://github.com/polyfill-rs/once_cell_polyfill |
-| rustix | 1.1.4 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | https://github.com/bytecodealliance/rustix |
+| rustix | 1.1.5 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | https://github.com/bytecodealliance/rustix |
 | strsim | 0.11.1 | `MIT` | https://github.com/rapidfuzz/strsim-rs |
 | tempfile | 3.27.0 | `MIT OR Apache-2.0` | https://github.com/Stebalien/tempfile |
 | utf8parse | 0.2.2 | `Apache-2.0 OR MIT` | https://github.com/alacritty/vte |
@@ -699,14 +699,14 @@ Used by:
 Used by:
 
 - bitflags 2.13.2 (https://github.com/bitflags/bitflags)
-- cfg-if 1.0.4 (https://github.com/rust-lang/cfg-if)
+- cfg-if 1.0.5 (https://github.com/rust-lang/cfg-if)
 - errno 0.3.14 (https://github.com/lambda-fairy/rust-errno)
 - fastrand 2.5.0 (https://github.com/smol-rs/fastrand)
 - hashbrown 0.15.5 (https://github.com/rust-lang/hashbrown)
 - imara-diff 0.2.0 (https://github.com/pascalkuthe/imara-diff)
 - linux-raw-sys 0.12.1 (https://github.com/sunfishcode/linux-raw-sys)
 - once_cell 1.21.4 (https://github.com/matklad/once_cell)
-- rustix 1.1.4 (https://github.com/bytecodealliance/rustix)
+- rustix 1.1.5 (https://github.com/bytecodealliance/rustix)
 - tempfile 3.27.0 (https://github.com/Stebalien/tempfile)
 
 
