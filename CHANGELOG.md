@@ -2,6 +2,15 @@
 
 All notable changes to envq are documented here.
 
+## 0.1.4 - 2025-09-20
+
+- Added a GitHub Actions workflow to keep third-party licence notices up to date, including Dependabot-specific handling.
+- Added an agent skill and documented .env editing capabilities.
+- Updated runtime and fuzzing dependencies, including several Dependabot-managed dependency and GitHub Actions upgrades.
+- Updated golden test fixtures to match current behaviour.
+- Refreshed generated third-party licence notices and pinned cargo-about to 0.9.2 for reproducible CI output.
+- Pinned the MSRV toolchain workflow to the current master configuration.
+
 ## 0.1.3 - 2026-04-25
 
 - Bundled bash, zsh, and fish completions in Linux GNU/glibc and musl `.tar.gz` release archives.
