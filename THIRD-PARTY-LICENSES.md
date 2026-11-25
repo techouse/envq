@@ -16,7 +16,7 @@ Do not edit it by hand; run `make third-party-licenses`.
 | cfg-if | 1.0.5 | `MIT OR Apache-2.0` | https://github.com/rust-lang/cfg-if |
 | clap | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_builder | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
-| clap_complete | 4.6.11 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
+| clap_complete | 4.6.12 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_lex | 1.1.1 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | colorchoice | 1.0.5 | `MIT OR Apache-2.0` | https://github.com/rust-cli/anstyle.git |
 | errno | 0.3.14 | `MIT OR Apache-2.0` | https://github.com/lambda-fairy/rust-errno |
@@ -495,7 +495,7 @@ Used by:
 
 - clap 4.6.7 (https://github.com/clap-rs/clap)
 - clap_builder 4.6.7 (https://github.com/clap-rs/clap)
-- clap_complete 4.6.11 (https://github.com/clap-rs/clap)
+- clap_complete 4.6.12 (https://github.com/clap-rs/clap)
 - clap_lex 1.1.1 (https://github.com/clap-rs/clap)
 
 
