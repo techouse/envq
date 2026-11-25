@@ -14,7 +14,7 @@ Do not edit it by hand; run `make third-party-licenses`.
 | anstyle-wincon | 3.0.11 | `MIT OR Apache-2.0` | https://github.com/rust-cli/anstyle.git |
 | bitflags | 2.13.2 | `MIT OR Apache-2.0` | https://github.com/bitflags/bitflags |
 | cfg-if | 1.0.5 | `MIT OR Apache-2.0` | https://github.com/rust-lang/cfg-if |
-| clap | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
+| clap | 4.6.9 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_builder | 4.6.7 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_complete | 4.6.11 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
 | clap_lex | 1.1.1 | `MIT OR Apache-2.0` | https://github.com/clap-rs/clap |
@@ -493,7 +493,7 @@ Used by:
 
 Used by:
 
-- clap 4.6.7 (https://github.com/clap-rs/clap)
+- clap 4.6.9 (https://github.com/clap-rs/clap)
 - clap_builder 4.6.7 (https://github.com/clap-rs/clap)
 - clap_complete 4.6.11 (https://github.com/clap-rs/clap)
 - clap_lex 1.1.1 (https://github.com/clap-rs/clap)
